@@ -1,65 +1,129 @@
-import fetch from "node-fetch";
+import { chromium } from "playwright";
 import { z } from "zod";
 import type { RegisteredTool } from "../../types";
 
 const MAX_CONTENT_LENGTH = 100_000;
 
-const fetchHtmlArgsSchema = z.object({
+// --- Schema ---
+const scrapeWebsiteArgsSchema = z.object({
   url: z.string().url(),
+  waitForSelector: z
+    .string()
+    .optional()
+    .describe("Optional CSS selector to wait for before scraping dynamic content"),
 });
 
-type FetchHtmlArgs = z.infer<typeof fetchHtmlArgsSchema>;
+// --- Types ---
+type ScrapeWebsiteArgs = z.infer<typeof scrapeWebsiteArgsSchema>;
 
-type FetchHtmlResult = {
+type ScrapeWebsiteResult = {
   url: string;
   status: number;
+  timestamp: string;
   truncated: boolean;
-  content: string;
+  metadata: {
+    title?: string;
+    description?: string;
+    keywords?: string[];
+  };
+  data: {
+    text: string;
+    links: { text: string; href: string }[];
+    htmlSnippet: string;
+  };
 };
 
-const fetchHtmlTool: RegisteredTool<FetchHtmlArgs, FetchHtmlResult> = {
+// --- 3️⃣ Tool Definition ---
+const scrapeWebsiteTool: RegisteredTool<ScrapeWebsiteArgs, ScrapeWebsiteResult> = {
   definition: {
     type: "function",
     function: {
-      name: "fetch_html_content",
+      name: "scrape_website",
       description:
-        "Fetch the HTML content from a public webpage. Use this when you need the raw markup of a URL provided in the conversation.",
+        "Use Playwright to scrape a fully rendered webpage and return structured metadata, text, and links.",
       parameters: {
         type: "object",
         properties: {
           url: {
             type: "string",
-            description: "A fully-qualified URL to retrieve (must include protocol).",
+            description: "Fully qualified URL to scrape (must include protocol).",
+          },
+          waitForSelector: {
+            type: "string",
+            description:
+              "Optional CSS selector to wait for before scraping (useful for JS-heavy pages).",
           },
         },
         required: ["url"],
       },
     },
   },
-  schema: fetchHtmlArgsSchema,
+
+  schema: scrapeWebsiteArgsSchema,
+
+  // --- Handler ---
   handler: async ({ toolArgs }) => {
-    const response = await fetch(toolArgs.url, {
-      headers: {
-        "User-Agent": "ai-agent-overview/1.0 (+https://github.com/)",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      },
-    });
+    const browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    let status = 0;
 
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
+    try {
+      const response = await page.goto(toolArgs.url, {
+        waitUntil: "domcontentloaded",
+        timeout: 30000,
+      });
+      status = response ? response.status() : 0;
+
+      if (toolArgs.waitForSelector) {
+        await page.waitForSelector(toolArgs.waitForSelector, { timeout: 10000 });
+      }
+
+      // --- Extract metadata, text, and links ---
+      const metadata = await page.evaluate(() => {
+        const metaDesc = document.querySelector("meta[name='description']")?.content || "";
+        const metaKeys = document
+          .querySelector("meta[name='keywords']")
+          ?.content?.split(",")
+          .map((k) => k.trim()) || [];
+        const title = document.title || "";
+        return { title, description: metaDesc, keywords: metaKeys };
+      });
+
+      const text = await page.evaluate(() => document.body.innerText || "");
+      const links = await page.$$eval("a", (anchors) =>
+        anchors
+          .map((a) => ({
+            text: a.textContent?.trim() || "",
+            href: a.href,
+          }))
+          .filter((a) => a.href)
+      );
+
+      // --- Limit large payloads ---
+      const html = await page.content();
+      const truncated = html.length > MAX_CONTENT_LENGTH;
+      const htmlSnippet = truncated ? html.slice(0, MAX_CONTENT_LENGTH) : html;
+
+      await browser.close();
+
+      return {
+        url: toolArgs.url,
+        status,
+        timestamp: new Date().toISOString(),
+        truncated,
+        metadata,
+        data: {
+          text,
+          links,
+          htmlSnippet,
+        },
+      };
+    } catch (err) {
+      await browser.close();
+      throw new Error(`Playwright scraping failed: ${err.message}`);
     }
-
-    const html = await response.text();
-    const truncated = html.length > MAX_CONTENT_LENGTH;
-    const content = truncated ? html.slice(0, MAX_CONTENT_LENGTH) : html;
-
-    return {
-      url: toolArgs.url,
-      status: response.status,
-      truncated,
-      content,
-    };
   },
 };
 
-export const tools: RegisteredTool[] = [fetchHtmlTool];
+// Export
+export const tools: RegisteredTool[] = [scrapeWebsiteTool];
