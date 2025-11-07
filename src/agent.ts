@@ -2,7 +2,7 @@ import type { AIMessage, RegisteredTool } from "../types";
 import { runLLM } from "./llm";
 import { runTool } from "./toolRunner";
 import { logMessage, showLoader } from "./ui";
-import { addMessages, getMessages, saveToolResponse } from "./memory";
+import { addMessages, getMessages } from "./memory";
 
 type AssistantMessage = Extract<AIMessage, { role: "assistant" }>;
 
@@ -19,15 +19,11 @@ export const runAgent = async ({
   const loader = showLoader("Thinking...");
 
   while (true) {
-    const history = await getMessages();
+    const history = await getMessages(20);
     const response = await runLLM({
       messages: history,
       tools: tools.map((tool) => tool.definition),
     });
-
-    if (response.role !== "assistant") {
-      throw new Error(`Unexpected response role: ${response.role}`);
-    }
 
     const assistantMessage: AssistantMessage = {
       role: "assistant",
@@ -42,15 +38,17 @@ export const runAgent = async ({
 
       for (const toolCall of assistantMessage.tool_calls) {
         const toolResponse = await runTool(toolCall, userMessage, tools);
-        await saveToolResponse(toolCall.id, toolResponse);
+        await addMessages([{ role: "tool", tool_call_id: toolCall.id, content: toolResponse }]);
       }
+
+      await addMessages([{ role: "user", content: "Summarize the final contact info." }]);
       continue;
     }
 
     if (assistantMessage.content) {
       loader.stop();
       logMessage(assistantMessage);
-      return getMessages();
+      return getMessages(20);
     }
   }
 };

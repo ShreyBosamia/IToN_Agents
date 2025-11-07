@@ -1,55 +1,35 @@
-import { JSONFilePreset } from 'lowdb/node';
-import type { AIMessage } from '../types';
-import { v4 as uuidv4 } from 'uuid';
+import { JSONFilePreset } from "lowdb/node";
+import type { AIMessage } from "../types";
 
-export type MessageWithMetadata = AIMessage & {
-  id: string;
-  createdAt: string;
-};
+type Data = { messages: AIMessage[] };
 
-type Data = {
-  messages: MessageWithMetadata[];
-};
+const defaultData: Data = { messages: [] };
 
-export const addMetadata = (message: AIMessage) => {
-  return {
-    ...message,
-    id: uuidv4(),
-    createdAt: new Date().toISOString(),
-  };
-};
-
-export const removeMetadata = (message: MessageWithMetadata) => {
-  const { id, createdAt, ...rest } = message;
-  return rest;
-};
-
-const defaultData: Data = {
-  messages: [],
-};
+const TOOL_MAX = 16000;
 
 export const getDb = async () => {
-  const db = await JSONFilePreset<Data>('db.json', defaultData);
+  const db = await JSONFilePreset<Data>("db.json", defaultData);
   return db;
 };
 
 export const addMessages = async (messages: AIMessage[]) => {
   const db = await getDb();
-  db.data.messages.push(...messages.map(addMetadata));
+  const trimmed = messages.map((m) => {
+    if (m.role === "tool" && typeof m.content === "string" && m.content.length > TOOL_MAX) {
+      return {
+        ...m,
+        content: m.content.slice(0, TOOL_MAX) + `\n...[truncated ${m.content.length - TOOL_MAX} chars]`,
+      };
+    }
+    return m;
+  });
+  db.data.messages.push(...trimmed);
   await db.write();
 };
 
-export const getMessages = async () => {
+export const getMessages = async (limit?: number) => {
   const db = await getDb();
-  return db.data.messages.map(removeMetadata);
-};
-
-export const saveToolResponse = async (toolCallId: string, toolResponse: string) => {
-  return addMessages([
-    {
-      role: 'tool',
-      content: toolResponse,
-      tool_call_id: toolCallId,
-    },
-  ]);
+  const all = db.data.messages;
+  if (!limit || all.length <= limit) return all;
+  return all.slice(-limit);
 };

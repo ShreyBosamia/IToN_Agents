@@ -3,7 +3,8 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "start": "npx tsx index.ts"
+    "start": "npx tsx index.ts",
+    "demo": "tsx scripts/demo.ts"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
