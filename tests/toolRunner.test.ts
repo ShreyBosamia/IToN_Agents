@@ -12,15 +12,15 @@ const echoTool: RegisteredTool = {
       parameters: {
         type: 'object',
         properties: { text: { type: 'string' } },
-        required: ['text']
-      }
-    }
+        required: ['text'],
+      },
+    },
   },
   // @ts-expect-error simplified for test
   schema: undefined,
   handler: async ({ toolArgs }) => {
     return { echoed: (toolArgs as any).text };
-  }
+  },
 };
 
 describe('runTool', () => {
@@ -29,7 +29,7 @@ describe('runTool', () => {
       {
         id: '1',
         type: 'function',
-        function: { name: 'missing', arguments: JSON.stringify({}) }
+        function: { name: 'missing', arguments: JSON.stringify({}) },
       } as any,
       'user msg',
       [echoTool]
@@ -42,7 +42,7 @@ describe('runTool', () => {
       {
         id: '2',
         type: 'function',
-        function: { name: 'echo', arguments: JSON.stringify({ text: 'hello' }) }
+        function: { name: 'echo', arguments: JSON.stringify({ text: 'hello' }) },
       } as any,
       'user msg',
       [echoTool]
@@ -56,7 +56,7 @@ describe('runTool', () => {
       {
         id: '3',
         type: 'function',
-        function: { name: 'echo', arguments: '{ bad json' }
+        function: { name: 'echo', arguments: '{ bad json' },
       } as any,
       'user msg',
       [echoTool]

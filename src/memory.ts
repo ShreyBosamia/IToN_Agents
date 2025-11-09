@@ -1,6 +1,6 @@
-import { JSONFilePreset } from "lowdb/node";
+import { JSONFilePreset } from 'lowdb/node';
 
-import type { AIMessage } from "../types";
+import type { AIMessage } from '../types';
 
 type Data = { messages: AIMessage[] };
 
@@ -9,17 +9,18 @@ const defaultData: Data = { messages: [] };
 const TOOL_MAX = 16000;
 
 export const getDb = async () => {
-  const db = await JSONFilePreset<Data>("db.json", defaultData);
+  const db = await JSONFilePreset<Data>('db.json', defaultData);
   return db;
 };
 
 export const addMessages = async (messages: AIMessage[]) => {
   const db = await getDb();
   const trimmed = messages.map((m) => {
-    if (m.role === "tool" && typeof m.content === "string" && m.content.length > TOOL_MAX) {
+    if (m.role === 'tool' && typeof m.content === 'string' && m.content.length > TOOL_MAX) {
       return {
         ...m,
-        content: m.content.slice(0, TOOL_MAX) + `\n...[truncated ${m.content.length - TOOL_MAX} chars]`,
+        content:
+          m.content.slice(0, TOOL_MAX) + `\n...[truncated ${m.content.length - TOOL_MAX} chars]`,
       };
     }
     return m;
@@ -44,13 +45,17 @@ export const getMessages = async (limit?: number) => {
     const slice = all.slice(start);
     for (let i = 0; i < slice.length; i++) {
       const msg = slice[i] as any;
-      if (msg.role === "tool" && msg.tool_call_id) {
+      if (msg.role === 'tool' && msg.tool_call_id) {
         const toolCallId = msg.tool_call_id;
 
         // Find the assistant message that contains the corresponding tool_calls
         // in the full message history.
         const assistantIndex = all.findIndex((m: any, _idx: number) => {
-          return m.role === "assistant" && Array.isArray(m.tool_calls) && m.tool_calls.some((tc: any) => tc.id === toolCallId);
+          return (
+            m.role === 'assistant' &&
+            Array.isArray(m.tool_calls) &&
+            m.tool_calls.some((tc: any) => tc.id === toolCallId)
+          );
         });
 
         if (assistantIndex !== -1 && assistantIndex < start) {

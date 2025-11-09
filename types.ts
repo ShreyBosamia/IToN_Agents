@@ -1,5 +1,5 @@
-import OpenAI from "openai";
-import type { ZodType } from "zod";
+import OpenAI from 'openai';
+import type { ZodType } from 'zod';
 
 export type AIMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
