@@ -8,7 +8,14 @@ export const runTool = async (
   tools: RegisteredTool[]
 ) => {
   const name = toolCall.function.name;
-  const args = toolCall.function.arguments ? JSON.parse(toolCall.function.arguments) : {};
+  let args: Record<string, unknown> = {};
+  if (toolCall.function.arguments) {
+    try {
+      args = JSON.parse(toolCall.function.arguments);
+    } catch {
+      return JSON.stringify({ error: 'Invalid tool argument JSON', name, raw: toolCall.function.arguments });
+    }
+  }
   const impl = tools.find((t) => t.definition.function?.name === name);
   if (!impl) return JSON.stringify({ error: `Unknown tool: ${name}` });
   const out = await impl.handler({ toolArgs: args, userMessage });
