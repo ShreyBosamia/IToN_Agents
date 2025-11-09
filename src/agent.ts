@@ -1,8 +1,9 @@
 import type { AIMessage, RegisteredTool } from "../types";
+
 import { runLLM } from "./llm";
+import { addMessages, getMessages } from "./memory";
 import { runTool } from "./toolRunner";
 import { logMessage, showLoader } from "./ui";
-import { addMessages, getMessages } from "./memory";
 
 type AssistantMessage = Extract<AIMessage, { role: "assistant" }>;
 
@@ -25,10 +26,14 @@ export const runAgent = async ({
       tools: tools.map((tool) => tool.definition),
     });
 
+    const toolCalls = (response as any) && 'tool_calls' in (response as any)
+      ? (response as any).tool_calls
+      : undefined;
+
     const assistantMessage: AssistantMessage = {
       role: "assistant",
       content: response.content ?? "",
-      ...(response.tool_calls ? { tool_calls: response.tool_calls } : {}),
+      ...(toolCalls ? { tool_calls: toolCalls } : {}),
     };
 
     await addMessages([assistantMessage]);

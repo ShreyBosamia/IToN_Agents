@@ -1,5 +1,6 @@
-import type { RegisteredTool } from "../types";
 import type OpenAI from "openai";
+
+import type { RegisteredTool } from "../types";
 
 export const runTool = async (
   toolCall: OpenAI.Chat.Completions.ChatCompletionMessageToolCall,

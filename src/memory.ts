@@ -1,4 +1,5 @@
 import { JSONFilePreset } from "lowdb/node";
+
 import type { AIMessage } from "../types";
 
 type Data = { messages: AIMessage[] };
@@ -48,7 +49,7 @@ export const getMessages = async (limit?: number) => {
 
         // Find the assistant message that contains the corresponding tool_calls
         // in the full message history.
-        const assistantIndex = all.findIndex((m: any, idx: number) => {
+        const assistantIndex = all.findIndex((m: any, _idx: number) => {
           return m.role === "assistant" && Array.isArray(m.tool_calls) && m.tool_calls.some((tc: any) => tc.id === toolCallId);
         });
 

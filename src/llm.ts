@@ -1,5 +1,7 @@
 import type OpenAI from "openai";
+
 import type { AIMessage } from "../types";
+
 import { openai } from "./ai";
 import { SYSTEM_PROMPT } from "./systemPrompt";
 
