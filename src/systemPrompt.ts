@@ -1,9 +1,7 @@
 export const SYSTEM_PROMPT = `
 You are an extraction agent.
 
-Target URL:
-https://foodfinder.oregonfoodbank.org/locations/south-benton-food-pantry?campaign=0&distance=nearby&q=
-
+You will be given a target URL in the user message.
 When scraping, always use the scrape_website tool first.
 Then extract:
 - Name
