@@ -2,7 +2,7 @@ import { tools } from '../src/tools/index'; // adjust the path if index.ts is in
 
 async function testScraper() {
   // Find our scraper tool
-  const scraper = tools.find(t => t.definition.function.name === 'scrape_website');
+  const scraper = tools.find((t) => t.definition.function.name === 'scrape_website');
   if (!scraper) throw new Error('scrape_website tool not found');
 
   // Run the handler directly
@@ -15,4 +15,4 @@ async function testScraper() {
   console.log(result);
 }
 
-testScraper().catch(err => console.error(err));
+testScraper().catch((err) => console.error(err));

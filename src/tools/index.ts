@@ -23,7 +23,7 @@ export const tools: RegisteredTool[] = [
               description: 'Optional CSS selector to await',
             },
             /** Optional: wait for network to go idle briefly after DOM ready (milliseconds). */
-            waitForNetworkIdleMs: { type: 'number' }
+            waitForNetworkIdleMs: { type: 'number' },
           },
           required: ['url'],
         },
@@ -80,7 +80,9 @@ export const tools: RegisteredTool[] = [
         if (waitForSelector) {
           await page.waitForSelector(waitForSelector, { timeout: 15_000 });
         } else if (waitForNetworkIdleMs && waitForNetworkIdleMs > 0) {
-          await page.waitForLoadState('networkidle', { timeout: Math.min(waitForNetworkIdleMs, 10_000) });
+          await page.waitForLoadState('networkidle', {
+            timeout: Math.min(waitForNetworkIdleMs, 10_000),
+          });
         }
 
         // Basic meta
@@ -93,27 +95,35 @@ export const tools: RegisteredTool[] = [
 
         const keywords = await page.evaluate(() => {
           const el = document.querySelector("meta[name='keywords']");
-          const raw = el ? (el.getAttribute('content') || '') : '';
-          return raw.split(',').map(s => s.trim()).filter(Boolean);
+          const raw = el ? el.getAttribute('content') || '' : '';
+          return raw
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
         });
-
 
         // Canonical, robots, OpenGraph, and ld+json
         const metaExtras = await page.evaluate(() => {
           const og = {
-            title: (document.querySelector("meta[property='og:title']")?.getAttribute('content')) || '',
-            description: (document.querySelector("meta[property='og:description']")?.getAttribute('content')) || '',
-            locale: (document.querySelector("meta[property='og:locale']")?.getAttribute('content')) || '',
-            url: (document.querySelector("meta[property='og:url']")?.getAttribute('content')) || ''
+            title:
+              document.querySelector("meta[property='og:title']")?.getAttribute('content') || '',
+            description:
+              document.querySelector("meta[property='og:description']")?.getAttribute('content') ||
+              '',
+            locale:
+              document.querySelector("meta[property='og:locale']")?.getAttribute('content') || '',
+            url: document.querySelector("meta[property='og:url']")?.getAttribute('content') || '',
           };
 
           const canonicalEl = document.querySelector("link[rel='canonical']");
-          const canonical = canonicalEl ? (canonicalEl.getAttribute('href') || '') : '';
+          const canonical = canonicalEl ? canonicalEl.getAttribute('href') || '' : '';
 
           const robotsEl = document.querySelector("meta[name='robots']");
-          const robots = robotsEl ? (robotsEl.getAttribute('content') || '') : '';
+          const robots = robotsEl ? robotsEl.getAttribute('content') || '' : '';
 
-          const scripts = Array.from(document.querySelectorAll("script[type='application/ld+json']"));
+          const scripts = Array.from(
+            document.querySelectorAll("script[type='application/ld+json']")
+          );
           const ld_json = [];
           for (const s of scripts) {
             const txt = (s.textContent || '').trim();
@@ -128,42 +138,45 @@ export const tools: RegisteredTool[] = [
           }
 
           const mainEl = document.querySelector('main, article');
-          const mainText = (mainEl && (mainEl.textContent || '').trim())
-            || (document.body && (document.body.innerText || '').trim())
-            || '';
+          const mainText =
+            (mainEl && (mainEl.textContent || '').trim()) ||
+            (document.body && (document.body.innerText || '').trim()) ||
+            '';
 
           return { canonical, robots, og, ld_json, mainText };
         });
-
 
         // Text (trimmed) – keep a flag if truncated
         const fullText = (metaExtras.mainText || '').toString();
         const text = fullText.slice(0, MAX_TEXT);
 
         // Links (resolved to absolute; include text + rel)
-        const links = await page.$$eval('a', (as, baseHref) => {
-          const out = [];
-          const seen = new Set();
-          for (const a of as) {
-            const rawHref = a.getAttribute('href') || '';
-            let href = '';
-            try {
-              href = new URL(rawHref, baseHref).href;
-            } catch {
-              continue;
+        const links = await page.$$eval(
+          'a',
+          (as, baseHref) => {
+            const out = [];
+            const seen = new Set();
+            for (const a of as) {
+              const rawHref = a.getAttribute('href') || '';
+              let href = '';
+              try {
+                href = new URL(rawHref, baseHref).href;
+              } catch {
+                continue;
+              }
+              if (!href || seen.has(href)) continue;
+              seen.add(href);
+              out.push({
+                href,
+                text: (a.textContent || '').trim(),
+                rel: (a.getAttribute('rel') || '').toLowerCase(),
+              });
+              if (out.length >= 300) break;
             }
-            if (!href || seen.has(href)) continue;
-            seen.add(href);
-            out.push({
-              href,
-              text: (a.textContent || '').trim(),
-              rel: (a.getAttribute('rel') || '').toLowerCase()
-            });
-            if (out.length >= 300) break;
-          }
-          return out;
-        }, finalUrl);
-
+            return out;
+          },
+          finalUrl
+        );
 
         // HTML snapshot (trimmed) + DOM hash (helps you detect real changes)
         const html = await page.content();
@@ -208,7 +221,7 @@ export const tools: RegisteredTool[] = [
           final_url: finalUrl,
           status,
           fetched_at: fetchStartedAt,
-          finished_at: new Date().toISOString()
+          finished_at: new Date().toISOString(),
         });
       } finally {
         // Always clean up even if an exception is thrown
