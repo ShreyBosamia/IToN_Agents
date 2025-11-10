@@ -74,6 +74,12 @@ Key files:
 
 Common tasks:
 
+- Run all tests:
+
+```
+npm run ci
+```
+
 - Lint (ESLint):
 
 ```
@@ -118,8 +124,14 @@ npm run coverage
 
 ### CI
 
-GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push/PR and does:
+GitHub Actions workflow (`.github/workflows/ci.yml`) r
+uns on push/PR and does:
 
+- Install dependencies
+- Lint
+- Prettier check
+- Tests (with coverage uploaded as an artifact)t for batch runs.
+  on push/PR and does:
 - Install dependencies
 - Lint
 - Prettier check
