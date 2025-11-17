@@ -124,15 +124,9 @@ npm run coverage
 
 ### CI
 
-GitHub Actions workflow (`.github/workflows/ci.yml`) r
-uns on push/PR and does:
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push/PR and does the following:
 
 - Install dependencies
 - Lint
 - Prettier check
-- Tests (with coverage uploaded as an artifact)t for batch runs.
-  on push/PR and does:
-- Install dependencies
-- Lint
-- Prettier check
-- Tests (with coverage uploaded as an artifact)
+- Tests (with coverage uploaded as an artifact) for batch runs.
