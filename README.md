@@ -9,13 +9,13 @@ A minimal TypeScript agent that calls OpenAI’s Chat Completions API with tool 
 
 ## Setup
 
-1) Install dependencies
+1. Install dependencies
 
 ```
 npm install
 ```
 
-2) Configure environment
+2. Configure environment
 
 - Create a `.env` file in the project root with:
 
@@ -25,7 +25,7 @@ OPENAI_API_KEY=your_openai_api_key
 
 Note: the env variable name is `OPENAI_API_KEY` (no extra underscore).
 
-3) Target website (optional)
+3. Target website (optional)
 
 - The default target URL is set in `src/systemPrompt.ts`. Update the `<context>...</context>` URL if you want the agent to analyze a different site.
 
@@ -38,6 +38,7 @@ npm start -- "Summarize the content of the provided website."
 ```
 
 Equivalents:
+
 - `npm run start -- "Find the clinic hours and phone numbers."`
 - `npx tsx index.ts "Extract address and contacts from the page."`
 
@@ -49,6 +50,7 @@ Equivalents:
 - The model reasons over the content and responds with the requested summary/details.
 
 Key files:
+
 - `index.ts` – CLI entrypoint
 - `src/agent.ts` – conversation loop, tool execution
 - `src/llm.ts` – OpenAI call setup (model, tools)
@@ -68,3 +70,63 @@ Key files:
 - If arguments don’t reach your script, ensure you used `--` after `npm start`.
 - Rotate your OpenAI key if you accidentally exposed it. Keep `.env` out of version control.
 
+## Development & quality
+
+Common tasks:
+
+- Run all tests:
+
+```
+npm run ci
+```
+
+- Lint (ESLint):
+
+```
+npm run lint
+```
+
+- Auto-fix lint issues where possible:
+
+```
+npm run lint:fix
+```
+
+- Format (Prettier):
+
+```
+npm run format
+```
+
+- Check formatting only:
+
+```
+npm run format:check
+```
+
+- Run tests (Vitest):
+
+```
+npm test
+```
+
+- Watch tests during development:
+
+```
+npm run test:watch
+```
+
+- Coverage report:
+
+```
+npm run coverage
+```
+
+### CI
+
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push/PR and does the following:
+
+- Install dependencies
+- Lint
+- Prettier check
+- Tests (with coverage uploaded as an artifact) for batch runs.

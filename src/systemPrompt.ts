@@ -12,4 +12,5 @@ Then extract:
 - Hours
 - Notes
 Return clean JSON.
+
 `;
