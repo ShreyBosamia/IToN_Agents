@@ -21,7 +21,12 @@ export const runAgent = async ({
 
   const loader = !quiet
     ? showLoader('Thinking...')
-    : { stop: () => {}, succeed: (_?: string) => {}, fail: (_?: string) => {}, update: (_: string) => {} };
+    : {
+        stop: () => {},
+        succeed: (_?: string) => {},
+        fail: (_?: string) => {},
+        update: (_: string) => {},
+      };
   let jsonRetryCount = 0;
 
   while (true) {
@@ -84,21 +89,21 @@ export const runAgent = async ({
 
       if (!parsedOk && jsonRetryCount === 0) {
         // Ask the assistant to return only the JSON (one retry).
-          jsonRetryCount += 1;
-          await addMessages([
-            {
-              role: 'user',
-              content:
-                'Please return ONLY valid JSON that matches the schema in the original prompt. Do not include any explanatory text or markdown. Respond with a single JSON object.'
-            },
-          ]);
-          // Log the non-JSON message for debugging (only when not quiet) and retry
-          if (!quiet) logMessage(assistantMessage);
-          continue;
+        jsonRetryCount += 1;
+        await addMessages([
+          {
+            role: 'user',
+            content:
+              'Please return ONLY valid JSON that matches the schema in the original prompt. Do not include any explanatory text or markdown. Respond with a single JSON object.',
+          },
+        ]);
+        // Log the non-JSON message for debugging (only when not quiet) and retry
+        if (!quiet) logMessage(assistantMessage);
+        continue;
       }
 
-        loader.stop();
-        if (!quiet) logMessage(assistantMessage);
+      loader.stop();
+      if (!quiet) logMessage(assistantMessage);
       return getMessages(20);
     }
   }

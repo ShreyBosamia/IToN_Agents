@@ -4,8 +4,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { runAgent } from '../src/agent.js';
-import { tools } from '../src/tools/index.js';
 import { SYSTEM_PROMPT } from '../src/systemPrompt.js';
+import { tools } from '../src/tools/index.js';
 
 async function main() {
   // Resolve and read websites.txt
@@ -19,7 +19,7 @@ async function main() {
     .filter((s) => s && /^https?:\/\//i.test(s));
 
   // Take first whatever MAX is and run extraction.
-  const MAX = 5;
+  const MAX = 2;
   const targets = urls.slice(0, MAX);
 
   if (!targets.length) {
@@ -28,18 +28,18 @@ async function main() {
   }
 
   for (const url of targets) {
-      const history = await runAgent({
-        // Use the existing system prompt as the user message, appending target URL
-        userMessage: `${SYSTEM_PROMPT}\nURL: ${url}`,
-        tools,
-        quiet: true,
-      });
-      const last = history.at(-1);
-      if (last?.role === 'assistant') {
-        // Print ONLY the assistant content (JSON) to stdout
-        console.log(String(last.content));
-      } else {
-        console.error('No assistant response captured.');
+    const history = await runAgent({
+      // Use the existing system prompt as the user message, appending target URL
+      userMessage: `${SYSTEM_PROMPT}\nURL: ${url}`,
+      tools,
+      quiet: true,
+    });
+    const last = history.at(-1);
+    if (last?.role === 'assistant') {
+      // Print ONLY the assistant content (JSON) to stdout
+      console.log(String(last.content));
+    } else {
+      console.error('No assistant response captured.');
     }
     // brief delay to avoid hammering sites
     await new Promise((r) => setTimeout(r, 1000));
