@@ -57,11 +57,8 @@ When scraping, always use the scrape_website tool first.
 }
 
 ## Rules
-- Each unique URL can be queried **only once**. Do not loop or retry.
 - Return only **raw JSON** with no markdown formatting (no triple backticks).
 - If any field is unknown, return \`null\`.
 - \`day\` uses 0 = Sunday through 6 = Saturday.
 - \`time\` is in 24-hour format, e.g., "0900" for 9:00 AM.
-- If the URL is provided, use it as the primary source of truth. If the URL fails to load or does not contain the necessary information, you may then perform a web search for the provider name.
-- Only call the URL once. Do not retry if it fails.
 `;

@@ -27,23 +27,46 @@ async function main() {
     process.exit(1);
   }
 
+  const results: any[] = [];
+
   for (const url of targets) {
     const history = await runAgent({
-      // Use the existing system prompt as the user message, appending target URL
       userMessage: `${SYSTEM_PROMPT}\nURL: ${url}`,
       tools,
       quiet: true,
     });
     const last = history.at(-1);
-    if (last?.role === 'assistant') {
-      // Print ONLY the assistant content (JSON) to stdout
-      console.log(String(last.content));
+    if (last?.role === 'assistant' && last.content) {
+      const raw = String(last.content).trim();
+      let parsed: any = null;
+      // Attempt direct parse
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        // Fallback: extract first top-level JSON object
+        const first = raw.indexOf('{');
+        const lastIdx = raw.lastIndexOf('}');
+        if (first !== -1 && lastIdx !== -1 && lastIdx > first) {
+          try {
+            parsed = JSON.parse(raw.slice(first, lastIdx + 1));
+          } catch {
+            parsed = null;
+          }
+        }
+      }
+      if (parsed && typeof parsed === 'object') {
+        results.push(parsed);
+      } else {
+        results.push({ error: 'Invalid JSON from assistant', url });
+      }
     } else {
-      console.error('No assistant response captured.');
+      results.push({ error: 'No assistant response captured', url });
     }
-    // brief delay to avoid hammering sites
     await new Promise((r) => setTimeout(r, 1000));
   }
+
+  // Emit a single valid JSON array containing all results
+  console.log(JSON.stringify(results, null, 2));
 }
 
 main();
