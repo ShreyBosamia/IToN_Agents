@@ -18,6 +18,7 @@ export const runAgent = async ({
   logMessage({ role: 'user', content: userMessage });
 
   const loader = showLoader('Thinking...');
+  let jsonRetryCount = 0;
 
   while (true) {
     const history = await getMessages(20);
@@ -52,6 +53,46 @@ export const runAgent = async ({
     }
 
     if (assistantMessage.content) {
+      // Try to ensure the assistant returned valid JSON. If not, retry once
+      // with a short user prompt asking for JSON-only output.
+      const raw =
+        typeof assistantMessage.content === 'string'
+          ? assistantMessage.content
+          : JSON.stringify(assistantMessage.content || '');
+      let parsedOk = false;
+      try {
+        JSON.parse(raw);
+        parsedOk = true;
+      } catch {
+        // If full content isn't valid JSON, try to extract a top-level JSON
+        // object from within the assistant response (handles fences or prose).
+        const first = raw.indexOf('{');
+        const last = raw.lastIndexOf('}');
+        if (first !== -1 && last !== -1 && last > first) {
+          try {
+            JSON.parse(raw.slice(first, last + 1));
+            parsedOk = true;
+          } catch {
+            parsedOk = false;
+          }
+        }
+      }
+
+      if (!parsedOk && jsonRetryCount === 0) {
+        // Ask the assistant to return only the JSON (one retry).
+        jsonRetryCount += 1;
+        await addMessages([
+          {
+            role: 'user',
+            content:
+              'Please return ONLY valid JSON that matches the schema in the original prompt. Do not include any explanatory text or markdown. Respond with a single JSON object.'
+          },
+        ]);
+        // Log the non-JSON message for debugging and continue the loop to retry
+        logMessage(assistantMessage);
+        continue;
+      }
+
       loader.stop();
       logMessage(assistantMessage);
       return getMessages(20);
