@@ -61,4 +61,5 @@ When scraping, always use the scrape_website tool first.
 - If any field is unknown, return \`null\`.
 - \`day\` uses 0 = Sunday through 6 = Saturday.
 - \`time\` is in 24-hour format, e.g., "0900" for 9:00 AM.
+- If there are any nulls, you are allowed to explore other pages more to see if you can find the necessary information to replace that null.
 `;

@@ -56,8 +56,7 @@ export const runAgent = async ({
         const toolResponse = await runTool(toolCall, userMessage, tools);
         await addMessages([{ role: 'tool', tool_call_id: toolCall.id, content: toolResponse }]);
       }
-
-      await addMessages([{ role: 'user', content: 'Summarize the final contact info.' }]);
+      
       continue;
     }
 
