@@ -19,7 +19,7 @@ async function main() {
     .filter((s) => s && /^https?:\/\//i.test(s));
 
   // Take first whatever MAX is and run extraction.
-  const MAX = 3;
+  const MAX = 5;
   const targets = urls.slice(0, MAX);
 
   if (!targets.length) {
@@ -27,21 +27,19 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Extracting ${targets.length} website(s) from websites.txt...`);
-
   for (const url of targets) {
-    console.log('\n=== TARGET ===');
-    console.log(`URL: ${url}`);
-    const history = await runAgent({
-      // Use the existing system prompt as the user message, appending target URL
-      userMessage: `${SYSTEM_PROMPT}\nURL: ${url}`,
-      tools,
-    });
-    const last = history.at(-1);
-    if (last?.role === 'assistant') {
-      console.log('Result:\n', last.content);
-    } else {
-      console.log('No assistant response captured.');
+      const history = await runAgent({
+        // Use the existing system prompt as the user message, appending target URL
+        userMessage: `${SYSTEM_PROMPT}\nURL: ${url}`,
+        tools,
+        quiet: true,
+      });
+      const last = history.at(-1);
+      if (last?.role === 'assistant') {
+        // Print ONLY the assistant content (JSON) to stdout
+        console.log(String(last.content));
+      } else {
+        console.error('No assistant response captured.');
     }
     // brief delay to avoid hammering sites
     await new Promise((r) => setTimeout(r, 1000));
