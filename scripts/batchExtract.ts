@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { runAgent } from '../src/agent.js';
 import { tools } from '../src/tools/index.js';
+import { SYSTEM_PROMPT } from '../src/systemPrompt.js';
 
 async function main() {
   // Resolve and read websites.txt
@@ -18,7 +19,7 @@ async function main() {
     .filter((s) => s && /^https?:\/\//i.test(s));
 
   // Take first whatever MAX is and run extraction.
-  const MAX = 5;
+  const MAX = 3;
   const targets = urls.slice(0, MAX);
 
   if (!targets.length) {
@@ -32,7 +33,8 @@ async function main() {
     console.log('\n=== TARGET ===');
     console.log(`URL: ${url}`);
     const history = await runAgent({
-      userMessage: `Scrape and extract structured info from: ${url}`,
+      // Use the existing system prompt as the user message, appending target URL
+      userMessage: `${SYSTEM_PROMPT}\nURL: ${url}`,
       tools,
     });
     const last = history.at(-1);
