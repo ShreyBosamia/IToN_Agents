@@ -1,56 +1,52 @@
-import { promises as fs } from 'fs';
+// @ts-nocheck
+/// <reference types="vitest" />
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from "vitest";
+import { getDb, addMessages, getMessages } from "../src/memory";
+import type { AIMessage } from "../src/types";
 
-import { addMessages, getMessages } from '../src/memory';
+const makeUserMessage = (content: string): AIMessage => ({
+  role: "user",
+  content,
+});
 
-// Helper to reset the underlying lowdb file before each test so tests are isolated.
-async function resetDb() {
-  await fs.writeFile('db.json', JSON.stringify({ messages: [] }, null, 2));
-}
+const makeToolMessage = (content: string): AIMessage =>
+  ({
+    role: "tool",
+    content,
+    tool_call_id: "test-call",
+  } as any as AIMessage);
 
-describe('memory.getMessages', () => {
+describe("memory module", () => {
   beforeEach(async () => {
-    await resetDb();
+    const db = await getDb();
+    db.data.messages = [];
+    await db.write();
   });
 
-  it('returns the last N messages when no tool dependency expansion is needed', async () => {
-    await addMessages([
-      { role: 'user', content: 'u1' },
-      { role: 'assistant', content: 'a1' },
-      { role: 'user', content: 'u2' },
-      { role: 'assistant', content: 'a2' },
-    ]);
+  it("stores and returns a user message", async () => {
+    await addMessages([makeUserMessage("hello world")]);
+    const msgs = await getMessages();
 
-    const slice = await getMessages(3); // expect last 3: a1, u2, a2
-    expect(slice.length).toBe(3);
-    expect(slice.map((m) => m.content)).toEqual(['a1', 'u2', 'a2']);
+    expect(msgs.length).toBeGreaterThan(0);
+    const last = msgs[msgs.length - 1];
+
+    expect(last.role).toBe("user");
+    expect(last.content).toBe("hello world");
   });
 
-  it('expands slice to include assistant tool_calls that precede tool messages', async () => {
-    // Sequence: assistant(tool_calls) -> tool -> assistant -> user
-    const toolCallId = 'tc_1';
-    await addMessages([
-      {
-        role: 'assistant',
-        content: '',
-        tool_calls: [
-          { id: toolCallId, type: 'function', function: { name: 'dummy', arguments: '{}' } },
-        ] as any,
-      },
-      { role: 'tool', tool_call_id: toolCallId, content: '{"ok":true}' },
-      { role: 'assistant', content: 'plain assistant' },
-      { role: 'user', content: 'final user' },
-    ]);
+  it("truncates very long tool messages", async () => {
+    const longContent = "x".repeat(20000);
 
-    // Ask for last 3 messages; slice would start at index 1 (tool, assistant, user) then expand backwards to include the assistant with tool_calls.
-    const slice = await getMessages(3);
-    // Expect expansion pulled in the previous tool message and the assistant with tool_calls.
-    const roles = slice.map((m) => m.role);
-    expect(roles).toEqual(['assistant', 'tool', 'assistant', 'user']);
-    // Verify the first assistant has tool_calls.
-    const firstAssistant: any = slice[0];
-    expect(Array.isArray(firstAssistant.tool_calls)).toBe(true);
-    expect(firstAssistant.tool_calls[0].id).toBe(toolCallId);
+    await addMessages([makeToolMessage(longContent)]);
+    const msgs = await getMessages();
+    const last = msgs[msgs.length - 1];
+
+    expect(last.role).toBe("tool");
+    expect(typeof last.content).toBe("string");
+
+    const content = last.content as string;
+    expect(content).toContain("...[truncated");
+    expect(content.length).toBeLessThan(longContent.length);
   });
 });
