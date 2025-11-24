@@ -143,5 +143,4 @@ function saveQueriesToFile(city: string, category: string, queries: string[]) {
   return filename;
 }
 
-
 export { runQueryGenerator, saveQueriesToFile };
