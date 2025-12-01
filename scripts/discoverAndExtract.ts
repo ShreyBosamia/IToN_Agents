@@ -85,17 +85,25 @@ async function main(): Promise<void> {
         continue;
       }
 
-      if (!last?.content) {
-        console.log("Empty assistant response.");
+      if (!last) {
+        console.log("No assistant response captured.");
         continue;
       }
 
-    const content =
-        typeof last.content === "string"
-            ? last.content
-            : last.content
-                .map((p) => ("text" in p ? p.text : ""))
-                .join("\n");
+      const content = (() => {
+        const c = last.content;
+        if (c == null) return ""; // null or undefined
+
+        if (typeof c === "string") return c;
+
+        if (Array.isArray(c)) {
+          return c
+            .map((p) => ("text" in p && p.text ? p.text : ""))
+            .join("\n");
+        }
+
+        return "";
+      })();
 
       const foundUrls = extractUrlsFromResponse(content);
       const sameDomain = foundUrls.filter(
@@ -113,9 +121,7 @@ async function main(): Promise<void> {
   }
 
   // Extract structured data from each discovered link
-  console.log(`\n==============================`);
   console.log(`BEGINNING FULL EXTRACTION`);
-  console.log(`==============================`);
 
   for (const [domain, linkSet] of discovered.entries()) {
     console.log(`\n### DOMAIN GROUP: ${domain}`);
@@ -134,12 +140,22 @@ async function main(): Promise<void> {
 
       const last = history.at(-1);
       if (last?.role === 'assistant') {
-        const content =
-          typeof last.content === "string"
-            ? last.content
-            : last.content.map((p) => ("text" in p ? p.text : "")).join("\n");
+      const content = (() => {
+        const c = last.content;
+        if (c == null) return "";
 
-        console.log('Result:\n', content);
+        if (typeof c === "string") return c;
+
+        if (Array.isArray(c)) {
+          return c
+            .map((p) => ("text" in p && p.text ? p.text : ""))
+            .join("\n");
+        }
+
+        return "";
+      })();
+
+      console.log('Result:\n', content);
       } else {
         console.log('No assistant response captured.');
       }
