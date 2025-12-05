@@ -1,5 +1,6 @@
-import { chromium } from 'playwright';
 import { createHash } from 'crypto';
+
+import { chromium } from 'playwright';
 
 import type { RegisteredTool } from '../../types';
 
@@ -130,9 +131,9 @@ export const tools: RegisteredTool[] = [
             if (!txt) continue;
             try {
               // remove JS-style comments that sometimes sneak in
-              const cleaned = txt.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+              const cleaned = txt.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/g, '');
               ld_json.push(JSON.parse(cleaned));
-            } catch (e) {
+            } catch {
               // ignore bad blocks
             }
           }
@@ -153,10 +154,11 @@ export const tools: RegisteredTool[] = [
         // Links (resolved to absolute; include text + rel)
         const links = await page.$$eval(
           'a',
-          (as, baseHref) => {
-            const out = [];
-            const seen = new Set();
-            for (const a of as) {
+          (as, args) => {
+            const { baseHref, maxLinks } = args as { baseHref: string; maxLinks: number };
+            const out: Array<{ href: string; text: string; rel: string }> = [];
+            const seen = new Set<string>();
+            for (const a of as as HTMLAnchorElement[]) {
               const rawHref = a.getAttribute('href') || '';
               let href = '';
               try {
@@ -171,11 +173,11 @@ export const tools: RegisteredTool[] = [
                 text: (a.textContent || '').trim(),
                 rel: (a.getAttribute('rel') || '').toLowerCase(),
               });
-              if (out.length >= 300) break;
+              if (out.length >= maxLinks) break;
             }
             return out;
           },
-          finalUrl
+          { baseHref: finalUrl, maxLinks: MAX_LINKS }
         );
 
         // HTML snapshot (trimmed) + DOM hash (helps you detect real changes)
