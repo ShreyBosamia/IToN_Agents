@@ -15,7 +15,7 @@ const makeToolMessage = (content: string): AIMessage =>
     role: 'tool',
     content,
     tool_call_id: 'test-call',
-  } as any as AIMessage);
+  }) as any as AIMessage;
 
 describe('memory module', () => {
   beforeEach(async () => {

@@ -21,10 +21,10 @@ export const getDb = async () => {
 export const addMessages = async (messages: AIMessage[]) => {
   const db = await getDb();
   const validMessages = messages.filter((m) => {
-    if (!m) return false;                       // null, undefined
-    if (typeof m !== "object") return false;    // primitive types
-    if (!("role" in m)) return false;           // role missing → DROP
-    return true;                                // assistant/tool invalid fields allowed
+    if (!m) return false; // null, undefined
+    if (typeof m !== 'object') return false; // primitive types
+    if (!('role' in m)) return false; // role missing → DROP
+    return true; // assistant/tool invalid fields allowed
   });
   if (validMessages.length === 0) return;
   const trimmed = validMessages.map((m) => {
@@ -56,11 +56,11 @@ export const getMessages = async (limit?: number) => {
     const slice = all.slice(start);
     for (let i = 0; i < slice.length; i++) {
       const msg = slice[i] as any;
-      if (msg.role === "tool" && msg.tool_call_id) {
+      if (msg.role === 'tool' && msg.tool_call_id) {
         const toolCallId = msg.tool_call_id;
         const assistantIndex = all.findIndex((m: any) => {
           return (
-            m.role === "assistant" &&
+            m.role === 'assistant' &&
             Array.isArray(m.tool_calls) &&
             m.tool_calls.some((tc: any) => tc.id === toolCallId)
           );
@@ -73,9 +73,9 @@ export const getMessages = async (limit?: number) => {
     }
     return false;
   };
-//FIX: no-empty error
+  //FIX: no-empty error
   while (adjustForToolDependencies()) {
-      // no-op to satisfy eslint
+    // no-op to satisfy eslint
   }
   return all.slice(start);
 };
