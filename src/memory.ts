@@ -73,9 +73,10 @@ export const getMessages = async (limit?: number) => {
     }
     return false;
   };
-
-  while (adjustForToolDependencies()) {}
-
+//FIX: no-empty error
+  while (adjustForToolDependencies()) {
+      // no-op to satisfy eslint
+  }
   return all.slice(start);
 };
 
