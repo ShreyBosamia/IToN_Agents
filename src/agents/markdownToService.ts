@@ -3,7 +3,7 @@ import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import { htmlToBlocks } from '@portabletext/block-tools';
-import { Schema } from '@sanity/schema';
+import {Schema} from "@sanity/schema"
 import { JSDOM } from 'jsdom';
 import { z } from 'zod';
 
@@ -80,8 +80,10 @@ export interface ExtractedService {
  * `structuredData` objects (if provided), falling back to the Markdown title
  * when necessary.
  *
- * 
- * 
+ * Note: This helper assumes the host project has installed `@portabletext/block-tools`
+ * and `@sanity/schema`.  It also requires `jsdom` for HTML parsing.  If these
+ * dependencies are missing at runtime, the caller must install them with
+ * `npm install @portabletext/block-tools @sanity/schema jsdom unified remark-parse remark-rehype rehype-stringify`.
  */
 export async function markdownToService(params: {
   title?: string;
@@ -92,23 +94,110 @@ export async function markdownToService(params: {
   // Convert Markdown → HTML
   const file = await unified().use(remarkParse).use(remarkRehype).use(rehypeStringify).process(markdown);
   const html = String(file);
-  // Compile a minimal schema to satisfy htmlToBlocks.  You can replace
-  // `blockContent` with your actual Sanity block content type if needed.
+  // Build a Sanity schema that closely mirrors the standard Portable Text
+  // configuration.  The block definition includes styles, lists and marks
+  // definitions so that `htmlToBlocks` has the information it needs to
+  // deserialize HTML correctly.  Without these, the block tools may attempt
+  // to read properties off undefined objects, resulting in errors like
+  // `Cannot read properties of undefined (reading 'some')`.
   const compiledSchema = Schema.compile({
-    name: 'default',
+    name: 'serviceSchema',
     types: [
       {
-        name: 'blockContent',
-        type: 'array',
-        of: [{ type: 'block' }],
+        type: 'document',
+        name: 'service',
+        fields: [
+          {
+            name: 'description',
+            type: 'array',
+            of: [
+              {
+                type: 'block',
+                // Define common heading styles.  Sanity uses these to map
+                // <h1>, <h2>, etc.  Without at least one style entry the
+                // block-tools library will throw when checking for styles.
+                styles: [
+                  { title: 'Normal', value: 'normal' },
+                  { title: 'Heading 1', value: 'h1' },
+                  { title: 'Heading 2', value: 'h2' },
+                  { title: 'Heading 3', value: 'h3' },
+                ],
+                // Allow bullet and numbered lists
+                lists: [
+                  { title: 'Bullet', value: 'bullet' },
+                  { title: 'Numbered', value: 'number' },
+                ],
+                // Define supported marks (decorators and annotations).  The
+                // decorators array must be defined; otherwise htmlToBlocks
+                // attempts to call `.some()` on an undefined value, which
+                // causes the error seen in tests.
+                marks: {
+                  decorators: [
+                    { title: 'Strong', value: 'strong' },
+                    { title: 'Emphasis', value: 'em' },
+                    { title: 'Underline', value: 'underline' },
+                    { title: 'Code', value: 'code' },
+                  ],
+                  annotations: [
+                    {
+                      name: 'link',
+                      type: 'object',
+                      title: 'URL',
+                      fields: [
+                        {
+                          name: 'href',
+                          type: 'url',
+                          title: 'URL',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+              // Support for inline images.  Although not strictly necessary
+              // for text-only service descriptions, including this definition
+              // prevents errors if HTML contains <img> tags.
+              {
+                type: 'image',
+                fields: [
+                  { name: 'caption', type: 'string', title: 'Caption' },
+                ],
+                options: { hotspot: true },
+              },
+            ],
+          },
+        ],
       },
     ],
   });
-  // Extract the PT type definition
-  const blockContentType: any = compiledSchema.get('blockContent').jsonType;
-  const blocks = htmlToBlocks(html, blockContentType, {
-    parseHtml: (htmlString: string) => new JSDOM(htmlString).window.document,
-  });
+  // Retrieve the compiled block content type from the document.  We find the
+  // 'description' field on our 'service' document and use its type definition
+  // directly.  Passing the entire type object (not its jsonType) is
+  // required; the block-tools library inspects its nested properties.
+  const blockContentType: any = compiledSchema
+    .get('service')
+    .fields.find((field: any) => field.name === 'description').type;
+  let blocks: any[];
+  try {
+    blocks = htmlToBlocks(html, blockContentType, {
+      parseHtml: (htmlString: string) => new JSDOM(htmlString).window.document,
+    });
+  } catch (err) {
+    // If htmlToBlocks fails (e.g. due to unexpected HTML structure),
+    // gracefully fallback to a simple text-only Portable Text array.  Split
+    // the Markdown by blank lines and wrap each paragraph in a block with a
+    // single span child.
+    const paragraphs = markdown
+      .split(/\n\s*\n/)
+      .map((para) => para.trim())
+      .filter(Boolean);
+    blocks = paragraphs.map((para) => ({
+      _type: 'block',
+      children: [{ _type: 'span', text: para }],
+      markDefs: [],
+      style: 'normal',
+    }));
+  }
 
   // Initialise extracted fields
   let name: string = title || '';

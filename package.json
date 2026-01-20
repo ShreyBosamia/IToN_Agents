@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run --reporter=dot",
+    "test:scrape": "tsx scripts/testServiceExtraction.ts",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "ci": "npm run lint && npm run format:check && npm run test"
