@@ -1,4 +1,4 @@
-import { tools } from '../src/tools/index'; // adjust the path if index.ts is in another folder
+import { tools } from '../src/tools/index'; 
 
 async function testScraper() {
   // Find our scraper tool

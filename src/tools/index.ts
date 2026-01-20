@@ -1,13 +1,17 @@
 import { createHash } from 'crypto';
-
 import { chromium } from 'playwright';
-
+import { extractServiceDataTool } from './extract_service_data';
 import type { RegisteredTool } from '../../types';
 
 const MAX_TEXT = 8000;
 const MAX_HTML = 12000;
 const MAX_LINKS = 300;
 
+/**
+ * A unified export of all available tools.  In addition to the existing
+ * `scrape_website` tool, this file now includes an optimized
+ * `extract_service_data` tool that returns Markdown rather than raw HTML.
+ */
 export const tools: RegisteredTool[] = [
   {
     definition: {
@@ -37,14 +41,12 @@ export const tools: RegisteredTool[] = [
         waitForSelector?: string;
         waitForNetworkIdleMs?: number;
       };
-
       const browser = await chromium.launch({ headless: true });
       const context = await browser.newContext({
         userAgent: undefined, // let Playwright pick a reasonable UA
         locale: 'en-US',
       });
       const page = await context.newPage();
-
       // Speed & stability: block heavy resources (images, fonts, media, etc.)
       await page.route('**/*', (route) => {
         const t = route.request().resourceType();
@@ -53,15 +55,11 @@ export const tools: RegisteredTool[] = [
         }
         route.continue();
       });
-
       page.setDefaultNavigationTimeout(30_000);
-
       let status = 0;
       let headers: Record<string, string> = {};
       let finalUrl = url;
-
       const fetchStartedAt = new Date().toISOString();
-
       try {
         const resp = await page.goto(url, {
           waitUntil: 'domcontentloaded',
@@ -76,7 +74,6 @@ export const tools: RegisteredTool[] = [
           status = 0;
           finalUrl = page.url() || url;
         }
-
         // Optional deterministic “extra wait”
         if (waitForSelector) {
           await page.waitForSelector(waitForSelector, { timeout: 15_000 });
@@ -85,15 +82,12 @@ export const tools: RegisteredTool[] = [
             timeout: Math.min(waitForNetworkIdleMs, 10_000),
           });
         }
-
         // Basic meta
         const title = await page.title();
-
         const description = await page.evaluate(() => {
           const el = document.querySelector("meta[name='description']");
           return el ? el.getAttribute('content') || '' : '';
         });
-
         const keywords = await page.evaluate(() => {
           const el = document.querySelector("meta[name='keywords']");
           const raw = el ? el.getAttribute('content') || '' : '';
@@ -102,28 +96,23 @@ export const tools: RegisteredTool[] = [
             .map((s) => s.trim())
             .filter(Boolean);
         });
-
         // Canonical, robots, OpenGraph, and ld+json
         const metaExtras = await page.evaluate(() => {
           const og = {
             title:
               document.querySelector("meta[property='og:title']")?.getAttribute('content') || '',
             description:
-              document.querySelector("meta[property='og:description']")?.getAttribute('content') ||
-              '',
+              document.querySelector("meta[property='og:description']")?.getAttribute('content') || '',
             locale:
               document.querySelector("meta[property='og:locale']")?.getAttribute('content') || '',
             url: document.querySelector("meta[property='og:url']")?.getAttribute('content') || '',
           };
-
           const canonicalEl = document.querySelector("link[rel='canonical']");
           const canonical = canonicalEl ? canonicalEl.getAttribute('href') || '' : '';
-
           const robotsEl = document.querySelector("meta[name='robots']");
           const robots = robotsEl ? robotsEl.getAttribute('content') || '' : '';
-
           const scripts = Array.from(
-            document.querySelectorAll("script[type='application/ld+json']")
+            document.querySelectorAll("script[type='application/ld+json']"),
           );
           const ld_json = [];
           for (const s of scripts) {
@@ -137,20 +126,16 @@ export const tools: RegisteredTool[] = [
               // ignore bad blocks
             }
           }
-
           const mainEl = document.querySelector('main, article');
           const mainText =
             (mainEl && (mainEl.textContent || '').trim()) ||
             (document.body && (document.body.innerText || '').trim()) ||
             '';
-
           return { canonical, robots, og, ld_json, mainText };
         });
-
         // Text (trimmed) – keep a flag if truncated
         const fullText = (metaExtras.mainText || '').toString();
         const text = fullText.slice(0, MAX_TEXT);
-
         // Links (resolved to absolute; include text + rel)
         const links = await page.$$eval(
           'a',
@@ -177,16 +162,13 @@ export const tools: RegisteredTool[] = [
             }
             return out;
           },
-          { baseHref: finalUrl, maxLinks: MAX_LINKS }
+          { baseHref: finalUrl, maxLinks: MAX_LINKS },
         );
-
         // HTML snapshot (trimmed) + DOM hash (helps you detect real changes)
         const html = await page.content();
         const htmlSnippet = html.slice(0, MAX_HTML);
         const dom_hash = createHash('sha256').update(html).digest('hex');
-
         const timestamp = new Date().toISOString();
-
         const payload = {
           url,
           final_url: finalUrl,
@@ -214,7 +196,6 @@ export const tools: RegisteredTool[] = [
             html: html.length > htmlSnippet.length,
           },
         };
-
         return JSON.stringify(payload);
       } catch (e: any) {
         return JSON.stringify({
@@ -232,4 +213,6 @@ export const tools: RegisteredTool[] = [
       }
     },
   },
+  // Our new lightweight Markdown‑first tool for extracting community service data
+  extractServiceDataTool,
 ];
