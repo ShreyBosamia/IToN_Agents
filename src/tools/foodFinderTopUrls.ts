@@ -80,7 +80,13 @@ export const foodFinderTopUrlsTool: RegisteredTool = {
 
       const found = new Set<string>();
 
-      const selectors = ['[role="listitem"]', 'li', 'article', '[data-testid*="result"]', 'a[href]'];
+      const selectors = [
+        '[role="listitem"]',
+        'li',
+        'article',
+        '[data-testid*="result"]',
+        'a[href]',
+      ];
 
       for (const sel of selectors) {
         if (found.size >= limit) break;
@@ -158,7 +164,8 @@ export const foodFinderTopUrlsTool: RegisteredTool = {
           n: limit,
           urls: [],
           source: 'foodfinder_directory',
-          error: 'No provider-like URLs found on FoodFinder (layout changed, results not rendered, or blocked).',
+          error:
+            'No provider-like URLs found on FoodFinder (layout changed, results not rendered, or blocked).',
         });
       }
 
