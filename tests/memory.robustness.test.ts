@@ -1,6 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { addMessages, getMessages } from '../src/memory';
 import { promises as fs } from 'fs';
+
+import { describe, it, expect, beforeEach } from 'vitest';
+
+import { addMessages, getMessages } from '../src/memory';
 
 const TEST_DB = 'db.json';
 

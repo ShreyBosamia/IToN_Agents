@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+
 import type { RegisteredTool } from '../../types';
 
 const BASE = 'https://foodfinder.oregonfoodbank.org/';
@@ -9,40 +10,13 @@ function uniq(arr: string[]) {
   return Array.from(new Set(arr));
 }
 
-function normalizeFoodFinderUrl(u: string) {
-  try {
-    const url = new URL(u);
-    url.hash = '';
-    return url.toString();
-  } catch {
-    return u;
-  }
-}
-
-function isProviderUrl(u: string) {
-  if (!u.startsWith(BASE)) return false;
-  if (!u.includes('/locations/')) return false;
-  if (u.includes('/privacy') || u.includes('/terms') || u.includes('/about')) return false;
+function isProviderLike(url: string, searchUrl: string) {
+  if (!url.startsWith(BASE)) return false;
+  if (url === BASE) return false;
+  if (url === searchUrl) return false;
+  if (url.includes('/privacy') || url.includes('/terms') || url.includes('/about')) return false;
+  if (url.includes('?campaign=') && url.includes('&distance=') && url.includes('&q=')) return false;
   return true;
-}
-
-async function collectLocationLinks(page: any, limit: number) {
-  const hrefs = await page.$$eval('a[href]', (as: any[]) =>
-    as.map((a) => (a as HTMLAnchorElement).href).filter(Boolean)
-  );
-  const urls = uniq(hrefs.map(normalizeFoodFinderUrl)).filter(isProviderUrl).slice(0, limit);
-  return urls;
-}
-
-async function gentleScroll(page: any) {
-  await page.evaluate(async () => {
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    for (let i = 0; i < 6; i++) {
-      window.scrollBy(0, Math.max(600, window.innerHeight));
-      await sleep(350);
-    }
-    window.scrollTo(0, 0);
-  });
 }
 
 export const foodFinderTopUrlsTool: RegisteredTool = {
@@ -50,7 +24,8 @@ export const foodFinderTopUrlsTool: RegisteredTool = {
     type: 'function',
     function: {
       name: 'foodFinderTopUrls',
-      description: 'Get top provider/detail URLs from Oregon Food Bank FoodFinder (Playwright-rendered).',
+      description:
+        'Get top provider/detail URLs from Oregon Food Bank FoodFinder directory (Playwright-rendered).',
       parameters: {
         type: 'object',
         properties: {
@@ -90,54 +65,122 @@ export const foodFinderTopUrlsTool: RegisteredTool = {
       route.continue();
     });
 
-    page.setDefaultNavigationTimeout(45_000);
+    page.setDefaultNavigationTimeout(30_000);
 
-    const makeResult = (urls: string[], extra?: { error?: string }) =>
-      JSON.stringify({
+    try {
+      await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+
+      try {
+        await page.waitForLoadState('networkidle', { timeout: 10_000 });
+      } catch {
+        void 0;
+      }
+
+      await page.waitForTimeout(1000);
+
+      const found = new Set<string>();
+
+      const selectors = ['[role="listitem"]', 'li', 'article', '[data-testid*="result"]', 'a[href]'];
+
+      for (const sel of selectors) {
+        if (found.size >= limit) break;
+
+        const handles = await page.$$(sel);
+        const toTry = handles.slice(0, 30);
+
+        for (const h of toTry) {
+          if (found.size >= limit) break;
+
+          const before = page.url();
+
+          let href = '';
+          try {
+            href = await h.evaluate((el) => {
+              const a = el instanceof HTMLAnchorElement ? el : el.querySelector?.('a[href]');
+              return a ? (a as HTMLAnchorElement).href : '';
+            });
+          } catch {
+            void 0;
+          }
+
+          if (href && isProviderLike(href, searchUrl)) {
+            found.add(href);
+            continue;
+          }
+
+          if (!href) {
+            try {
+              await h.click({ timeout: 1500 });
+              await page.waitForTimeout(500);
+            } catch {
+              void 0;
+            }
+
+            const after = page.url();
+            if (after !== before && isProviderLike(after, searchUrl)) {
+              found.add(after);
+            }
+
+            if (after !== before) {
+              try {
+                await page.goBack({ waitUntil: 'domcontentloaded', timeout: 10_000 });
+                await page.waitForTimeout(500);
+              } catch {
+                try {
+                  await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+                  await page.waitForTimeout(500);
+                } catch {
+                  void 0;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (found.size < limit) {
+        const hrefs = await page.$$eval('a[href]', (as) =>
+          as.map((a) => (a as HTMLAnchorElement).href).filter(Boolean)
+        );
+
+        for (const h of hrefs) {
+          if (found.size >= limit) break;
+          if (isProviderLike(h, searchUrl)) found.add(h);
+        }
+      }
+
+      const urls = uniq(Array.from(found)).slice(0, limit);
+
+      if (urls.length === 0) {
+        return JSON.stringify({
+          action: 'foodFinderTopUrls',
+          query: q,
+          n: limit,
+          urls: [],
+          source: 'foodfinder_directory',
+          error: 'No provider-like URLs found on FoodFinder (layout changed, results not rendered, or blocked).',
+        });
+      }
+
+      return JSON.stringify({
         action: 'foodFinderTopUrls',
         query: q,
         n: limit,
         urls,
         source: 'foodfinder_directory',
-        ...(extra?.error ? { error: extra.error } : {}),
       });
-
-    try {
-      await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 45_000 });
-
-      try {
-        await page.waitForSelector('a[href*="/locations/"]', { timeout: 15_000 });
-      } catch {
-        await gentleScroll(page);
-        try {
-          await page.waitForSelector('a[href*="/locations/"]', { timeout: 12_000 });
-        } catch {}
-      }
-
-      let urls = await collectLocationLinks(page, limit);
-      if (urls.length >= 1) return makeResult(urls);
-
-      try {
-        await page.reload({ waitUntil: 'domcontentloaded', timeout: 45_000 });
-      } catch {}
-
-      try {
-        await page.waitForSelector('a[href*="/locations/"]', { timeout: 15_000 });
-      } catch {
-        await gentleScroll(page);
-      }
-
-      urls = await collectLocationLinks(page, limit);
-      if (urls.length >= 1) return makeResult(urls);
-
-      return makeResult([], 'No provider-like URLs found on FoodFinder (layout changed, results not rendered, or blocked).'
-        ? { error: 'No provider-like URLs found on FoodFinder (layout changed, results not rendered, or blocked).' }
-        : undefined);
     } catch (e: any) {
-      return makeResult([], { error: e?.message ?? String(e) });
+      return JSON.stringify({
+        action: 'foodFinderTopUrls',
+        query: q,
+        n: limit,
+        urls: [],
+        source: 'foodfinder_directory',
+        error: e?.message ?? String(e),
+      });
     } finally {
-      await context.close().catch(() => {});
-      await browser.close().catch(() => {});
+      await context.close().catch(() => void 0);
+      await browser.close().catch(() => void 0);
     }
   },
 };
