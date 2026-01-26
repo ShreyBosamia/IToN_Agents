@@ -132,7 +132,10 @@ function extractLdAddress(items: Array<Record<string, unknown>>): string {
   return '';
 }
 
-function extractLdGeo(items: Array<Record<string, unknown>>): { latitude: number | null; longitude: number | null } {
+function extractLdGeo(items: Array<Record<string, unknown>>): {
+  latitude: number | null;
+  longitude: number | null;
+} {
   for (const item of items) {
     const geo = item.geo;
     if (geo && typeof geo === 'object') {
@@ -147,7 +150,10 @@ function extractLdGeo(items: Array<Record<string, unknown>>): { latitude: number
   return { latitude: null, longitude: null };
 }
 
-function extractContactFromLinks(links: Array<{ href?: string }>): { phone: string; email: string } {
+function extractContactFromLinks(links: Array<{ href?: string }>): {
+  phone: string;
+  email: string;
+} {
   let phone = '';
   let email = '';
 
@@ -171,11 +177,7 @@ function buildSanityDoc(scraped: unknown, category: string, fallbackUrl: string)
   const metadata = data.metadata && typeof data.metadata === 'object' ? data.metadata : {};
   const ldItems = collectLdObjects(metadata.ld_json);
 
-  const name = firstNonEmpty([
-    metadata.og?.title,
-    metadata.title,
-    extractLdName(ldItems),
-  ]);
+  const name = firstNonEmpty([metadata.og?.title, metadata.title, extractLdName(ldItems)]);
 
   const rawDescription = firstNonEmpty([
     metadata.og?.description,
@@ -223,9 +225,7 @@ async function main() {
   const [city, state, category, perQueryArg, maxUrlsArg] = process.argv.slice(2);
 
   if (!city || !state || !category) {
-    console.error(
-      'Usage: tsx scripts/pipeline.ts <city> <state> <category> [perQuery] [maxUrls]'
-    );
+    console.error('Usage: tsx scripts/pipeline.ts <city> <state> <category> [perQuery] [maxUrls]');
     process.exit(1);
   }
 
@@ -273,10 +273,7 @@ async function main() {
     sanityDocs.push(buildSanityDoc(parsed, category, url));
   }
 
-  const sanityFile = path.join(
-    outputDir,
-    `${safeName(city)}_${safeName(category)}_sanity.json`
-  );
+  const sanityFile = path.join(outputDir, `${safeName(city)}_${safeName(category)}_sanity.json`);
   await writeFile(sanityFile, JSON.stringify(sanityDocs, null, 2), 'utf-8');
 
   const output: PipelineOutput = {
@@ -293,10 +290,7 @@ async function main() {
     sanity_file: sanityFile,
   };
 
-  const outputFile = path.join(
-    outputDir,
-    `${safeName(city)}_${safeName(category)}_pipeline.json`
-  );
+  const outputFile = path.join(outputDir, `${safeName(city)}_${safeName(category)}_pipeline.json`);
   await writeFile(outputFile, JSON.stringify(output, null, 2), 'utf-8');
 
   console.log(`Saved queries to ${queryFile}`);

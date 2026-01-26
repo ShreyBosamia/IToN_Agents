@@ -135,12 +135,7 @@ async function runQueryGenerator(city: string, state: string, category: string):
 /**
  * Write queries to a text file named "<city>_<category>_queries.txt".
  */
-function saveQueriesToFile(
-  city: string,
-  category: string,
-  queries: string[],
-  outputDir?: string
-) {
+function saveQueriesToFile(city: string, category: string, queries: string[], outputDir?: string) {
   const safeCity = city.replace(/\s+/g, '_');
   const safeCategory = category.replace(/\s+/g, '_');
   const filename = `${safeCity}_${safeCategory}_queries.txt`;
