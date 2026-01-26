@@ -1,0 +1,352 @@
+[
+  {
+    "name": "Overnight Emergency Shelters",
+    "description": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "text": "Learn more about the City's Emergency Overnight and Day Shelters."
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "address": "",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "serviceTypes": [
+      {
+        "_id": "Homeless shelter"
+      }
+    ],
+    "hoursOfOperation": {
+      "periods": [],
+      "weekdayText": []
+    },
+    "contact": {
+      "phone": "503-823-1340",
+      "email": "shelterservices@portlandoregon.gov",
+      "website": "https://www.portland.gov/shelter-services/overnight-emergency-shelters"
+    }
+  },
+  {
+    "name": "Emergency Shelters — Homeless Services Department",
+    "description": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "text": "Learn how we're providing immediate and temporary shelter for those experiencing homelessness across Multnomah County."
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "address": "",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "serviceTypes": [
+      {
+        "_id": "Homeless shelter"
+      }
+    ],
+    "hoursOfOperation": {
+      "periods": [],
+      "weekdayText": []
+    },
+    "contact": {
+      "phone": "",
+      "email": "hsd@multco.us",
+      "website": "https://hsd.multco.us/emergency-shelters/"
+    }
+  },
+  {
+    "name": "Shelters — Transition Projects",
+    "description": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "text": ".fe-681298680a5f3e065b661f9f { --grid-gutter: calc(var(--sqs-mobile-site-gutter, 6vw) - 11.0px); --cell-max-width: calc( ( var(--sqs-site-max-width, 1500px) - (11.0px * (8 - 1)) ) / 8 ); display: grid; position: relative; grid-area: 1/1/-1/"
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "address": "",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "serviceTypes": [
+      {
+        "_id": "Homeless shelter"
+      }
+    ],
+    "hoursOfOperation": {
+      "periods": [],
+      "weekdayText": []
+    },
+    "contact": {
+      "phone": "",
+      "email": "volunteer@tprojects.org",
+      "website": "https://www.tprojects.org/shelters"
+    }
+  },
+  {
+    "name": "Access Denied",
+    "description": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "text": "Access Denied You don't have permission to access \"http://www.corporatehousing.com/or/portland/temporary-housing\" on this server. Reference #18.97f4d517.1769382006.427168d5 https://errors.edgesuite.net/18.97f4d517.1769382006.427168d5"
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "address": "",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "serviceTypes": [
+      {
+        "_id": "Homeless shelter"
+      }
+    ],
+    "hoursOfOperation": {
+      "periods": [],
+      "weekdayText": []
+    },
+    "contact": {
+      "phone": "",
+      "email": "",
+      "website": "https://www.corporatehousing.com/or/portland/temporary-housing"
+    }
+  },
+  {
+    "name": "Temporary Alternative Shelter Sites (TASS)",
+    "description": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "text": "Temporary Alternative Shelter Sites (TASS) Information View full size image of Image of person sitting on a picnic table under a sign reading \"Empathy\" This page was last updated Feb. 26, 2024Portland's Temporary Alternative Shelter Sites p"
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "address": "",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "serviceTypes": [
+      {
+        "_id": "Homeless shelter"
+      }
+    ],
+    "hoursOfOperation": {
+      "periods": [],
+      "weekdayText": []
+    },
+    "contact": {
+      "phone": "5038234000",
+      "email": "MayorWheeler@portlandoregon.gov",
+      "website": "https://www.portland.gov/wheeler/shelter-sites"
+    }
+  },
+  {
+    "name": "Attention Required! | Cloudflare",
+    "description": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "text": "Please enable cookies. Sorry, you have been blocked You are unable to access findhelp.cloud Why have I been blocked? This website is using a security service to protect itself from online attacks. The action you just performed triggered the"
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "address": "",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "serviceTypes": [
+      {
+        "_id": "Homeless shelter"
+      }
+    ],
+    "hoursOfOperation": {
+      "periods": [],
+      "weekdayText": []
+    },
+    "contact": {
+      "phone": "",
+      "email": "",
+      "website": "https://www.findhelp.org/housing/short-term-housing--portland-or"
+    }
+  },
+  {
+    "name": "Homelessness Assistance Guide",
+    "description": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "text": "Check out our assistance guide to steer resources to individuals experiencing homelessness."
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "address": "",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "serviceTypes": [
+      {
+        "_id": "Homeless shelter"
+      }
+    ],
+    "hoursOfOperation": {
+      "periods": [],
+      "weekdayText": []
+    },
+    "contact": {
+      "phone": "5038234000",
+      "email": "PortlandSolutions@portlandoregon.gov",
+      "website": "https://www.portland.gov/portland-solutions/homelessness-assistance-guide"
+    }
+  },
+  {
+    "name": "Supportive housing services: Addressing homelessness in greater Portland | Metro",
+    "description": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "text": "Supportive housing services: Addressing homelessness in greater Portland Rising housing costs and stagnant wages have led to a housing crisis and increased homelessness. Thanks to voters, funds are now available to support housing access an"
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "address": "",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "serviceTypes": [
+      {
+        "_id": "Homeless shelter"
+      }
+    ],
+    "hoursOfOperation": {
+      "periods": [],
+      "weekdayText": []
+    },
+    "contact": {
+      "phone": "+15037971700",
+      "email": "housinginfo@oregonmetro.gov",
+      "website": "https://www.oregonmetro.gov/what-metro-does/housing-and-homelessness/supportive-housing-services"
+    }
+  },
+  {
+    "name": "Homeless Resources - Blanchet House",
+    "description": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "text": "Resources for understanding homelessness, surviving being homeless, and connecting with partners in Portland."
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "address": "",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "serviceTypes": [
+      {
+        "_id": "Homeless shelter"
+      }
+    ],
+    "hoursOfOperation": {
+      "periods": [],
+      "weekdayText": []
+    },
+    "contact": {
+      "phone": "503-241-4340",
+      "email": "info@blanchethouse.org",
+      "website": "https://blanchethouse.org/resources/"
+    }
+  },
+  {
+    "name": "List of shelters — Homeless Services Department",
+    "description": [
+      {
+        "_type": "block",
+        "children": [
+          {
+            "_type": "span",
+            "text": "See the list of shelters funded by the Homeless Services Department, including congregate, village and motel shelters."
+          }
+        ],
+        "markDefs": [],
+        "style": "normal"
+      }
+    ],
+    "address": "",
+    "location": {
+      "latitude": null,
+      "longitude": null
+    },
+    "serviceTypes": [
+      {
+        "_id": "Homeless shelter"
+      }
+    ],
+    "hoursOfOperation": {
+      "periods": [],
+      "weekdayText": []
+    },
+    "contact": {
+      "phone": "",
+      "email": "shelter.access@tprojects.org",
+      "website": "https://hsd.multco.us/emergency-shelters/list-of-shelters/"
+    }
+  }
+]
