@@ -4,6 +4,9 @@ import path from 'node:path';
 
 import { runQueryGenerator, saveQueriesToFile } from '../queryGeneratorAgents.js';
 import { runSearchAgent } from '../searchAgent.js';
+import { runAgent } from '../src/agent.js';
+import { resetMessages } from '../src/memory.js';
+import { SYSTEM_PROMPT } from '../src/systemPrompt.js';
 import { tools } from '../src/tools/index.js';
 
 type SanityBlock = {
@@ -13,6 +16,16 @@ type SanityBlock = {
   style: 'normal';
 };
 
+type HoursPeriod = {
+  open: { day: number; time: string };
+  close: { day: number; time: string };
+};
+
+type HoursData = {
+  periods: HoursPeriod[];
+  weekdayText: string[];
+};
+
 type SanityDoc = {
   name: string;
   description: SanityBlock[];
@@ -20,7 +33,7 @@ type SanityDoc = {
   location: { latitude: number | null; longitude: number | null };
   serviceTypes: Array<{ _id: string }>;
   hoursOfOperation: {
-    periods: Array<{ open: { day: number; time: string }; close: { day: number; time: string } }>;
+    periods: HoursPeriod[];
     weekdayText: string[];
   };
   contact: { phone: string; email: string; website: string };
@@ -38,7 +51,10 @@ type PipelineOutput = {
   scraped: Array<{ url: string; result: unknown }>;
   sanity: SanityDoc[];
   sanity_file: string;
+  extracted: Array<{ url: string; result: SanityDoc; method: 'agent' | 'fallback' }>;
 };
+
+const HOURS_LINK_LIMIT = 3;
 
 function parseIntArg(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
@@ -52,6 +68,57 @@ function safeName(input: string): string {
 
 function normalizeWhitespace(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
+}
+
+function isNoisyLine(line: string): boolean {
+  const lower = line.toLowerCase();
+  if (lower.includes('sqs-') || lower.includes('squarespace')) return true;
+  if (lower.includes('grid-area') || lower.includes('grid-gutter')) return true;
+  if (lower.includes('cell-max-width') || lower.includes('calc(') || lower.includes('var(')) {
+    return true;
+  }
+  if (/\b--[a-z-]+\s*:/.test(lower)) return true;
+  if (/\.fe-\w+/.test(lower)) return true;
+  if (/[{}]/.test(line)) return true;
+  return false;
+}
+
+function cleanTextLines(text: string): string[] {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => normalizeWhitespace(line))
+    .filter(Boolean);
+  return lines.filter((line) => !isNoisyLine(line));
+}
+
+function extractDescriptionFallback(text: string): string {
+  const cleaned = cleanTextLines(text).join(' ');
+  if (!cleaned) return '';
+  const match = cleaned.match(/^(.*?[.!?])\s/);
+  if (match) return match[1].slice(0, 240);
+  return cleaned.slice(0, 240);
+}
+
+function dedupeStrings(values: string[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    const normalized = normalizeWhitespace(value);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+  }
+  return out;
+}
+
+function toOriginUrl(raw: string): string {
+  if (!raw) return '';
+  try {
+    const url = new URL(raw);
+    return `${url.protocol}//${url.host}`;
+  } catch {
+    return raw;
+  }
 }
 
 function toNumber(value: unknown): number | null {
@@ -150,6 +217,268 @@ function extractLdGeo(items: Array<Record<string, unknown>>): {
   return { latitude: null, longitude: null };
 }
 
+function normalizeDay(value: string): { name: string; day: number } | null {
+  const key = value.toLowerCase();
+  const map: Record<string, { name: string; day: number }> = {
+    monday: { name: 'Monday', day: 1 },
+    mon: { name: 'Monday', day: 1 },
+    tuesday: { name: 'Tuesday', day: 2 },
+    tue: { name: 'Tuesday', day: 2 },
+    tues: { name: 'Tuesday', day: 2 },
+    wednesday: { name: 'Wednesday', day: 3 },
+    wed: { name: 'Wednesday', day: 3 },
+    thursday: { name: 'Thursday', day: 4 },
+    thu: { name: 'Thursday', day: 4 },
+    thur: { name: 'Thursday', day: 4 },
+    thurs: { name: 'Thursday', day: 4 },
+    friday: { name: 'Friday', day: 5 },
+    fri: { name: 'Friday', day: 5 },
+    saturday: { name: 'Saturday', day: 6 },
+    sat: { name: 'Saturday', day: 6 },
+    sunday: { name: 'Sunday', day: 7 },
+    sun: { name: 'Sunday', day: 7 },
+  };
+
+  if (map[key]) return map[key];
+  const match = key.match(/(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/);
+  if (match && map[match[1]]) return map[match[1]];
+  return null;
+}
+
+function formatTime(value: string): string {
+  if (!/^\d{4}$/.test(value)) return value;
+  return `${value.slice(0, 2)}:${value.slice(2)}`;
+}
+
+function toPeriodTime(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const raw = value.trim().toLowerCase();
+  const match = raw.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/);
+  if (!match) return null;
+  let hour = Number.parseInt(match[1], 10);
+  const minute = match[2] ? match[2] : '00';
+  const meridiem = match[3];
+  if (meridiem) {
+    if (meridiem === 'pm' && hour < 12) hour += 12;
+    if (meridiem === 'am' && hour === 12) hour = 0;
+  }
+  const hourStr = `${hour}`.padStart(2, '0');
+  return `${hourStr}${minute}`;
+}
+
+function parseOpeningHoursSpecification(spec: Record<string, unknown>): {
+  periods: HoursPeriod[];
+  weekdayText: string[];
+} {
+  const periods: HoursPeriod[] = [];
+  const weekdayText: string[] = [];
+
+  const daysRaw = spec.dayOfWeek;
+  const opens = spec.opens;
+  const closes = spec.closes;
+  const openTime = toPeriodTime(opens);
+  const closeTime = toPeriodTime(closes);
+
+  if (!openTime || !closeTime) return { periods, weekdayText };
+
+  const days = Array.isArray(daysRaw) ? daysRaw : [daysRaw];
+  for (const dayValue of days) {
+    let dayString: string | null = null;
+    if (typeof dayValue === 'string') {
+      dayString = dayValue;
+    } else if (dayValue && typeof dayValue === 'object') {
+      const valueObj = dayValue as Record<string, unknown>;
+      if (typeof valueObj['@id'] === 'string') dayString = valueObj['@id'] as string;
+      if (!dayString && typeof valueObj['@value'] === 'string') {
+        dayString = valueObj['@value'] as string;
+      }
+    }
+    if (!dayString) continue;
+    const normalized = normalizeDay(dayString);
+    if (!normalized) continue;
+    periods.push({
+      open: { day: normalized.day, time: openTime },
+      close: { day: normalized.day, time: closeTime },
+    });
+    weekdayText.push(`${normalized.name}: ${formatTime(openTime)} - ${formatTime(closeTime)}`);
+  }
+
+  return { periods, weekdayText };
+}
+
+function extractHoursFromLd(items: Array<Record<string, unknown>>): HoursData {
+  const weekdayText: string[] = [];
+  const periods: HoursPeriod[] = [];
+
+  for (const item of items) {
+    const openingHours = item.openingHours;
+    if (typeof openingHours === 'string') {
+      weekdayText.push(openingHours);
+    } else if (Array.isArray(openingHours)) {
+      for (const entry of openingHours) {
+        if (typeof entry === 'string') weekdayText.push(entry);
+      }
+    }
+
+    const spec = item.openingHoursSpecification;
+    if (Array.isArray(spec)) {
+      for (const entry of spec) {
+        if (!entry || typeof entry !== 'object') continue;
+        const parsed = parseOpeningHoursSpecification(entry as Record<string, unknown>);
+        periods.push(...parsed.periods);
+        weekdayText.push(...parsed.weekdayText);
+      }
+    } else if (spec && typeof spec === 'object') {
+      const parsed = parseOpeningHoursSpecification(spec as Record<string, unknown>);
+      periods.push(...parsed.periods);
+      weekdayText.push(...parsed.weekdayText);
+    }
+  }
+
+  return {
+    periods,
+    weekdayText: dedupeStrings(weekdayText),
+  };
+}
+
+function extractHoursFromText(text: string): HoursData {
+  if (!text) return { periods: [], weekdayText: [] };
+  const lines = cleanTextLines(text);
+  const dayRegex =
+    /\b(mon(day)?|tue(s|sday)?|wed(nesday)?|thu(r|rs|rsday)?|fri(day)?|sat(urday)?|sun(day)?)\b/i;
+  const timeRegex = /\b\d{1,2}(:\d{2})?\s?(am|pm)\b|\b\d{1,2}:\d{2}\b/i;
+  const closedRegex = /\bclosed\b/i;
+  const appointmentRegex = /\bby appointment\b/i;
+  const monthRegex =
+    /\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/i;
+  const candidates: string[] = [];
+
+  let grabNext = 0;
+  let pendingDay: string | null = null;
+  for (const line of lines) {
+    const normalized = normalizeWhitespace(line);
+    if (!normalized) continue;
+
+    if (monthRegex.test(normalized) && /\b\d{4}\b/.test(normalized)) {
+      continue;
+    }
+    if (/published/i.test(normalized)) {
+      continue;
+    }
+
+    const hasDay = dayRegex.test(normalized);
+    const hasTime = timeRegex.test(normalized);
+    const hasClosed = closedRegex.test(normalized) || appointmentRegex.test(normalized);
+
+    if (grabNext > 0) {
+      if (hasDay && (hasTime || hasClosed)) {
+        candidates.push(normalized);
+      } else if (hasDay && !hasTime) {
+        pendingDay = normalized;
+      } else if (hasTime && pendingDay) {
+        candidates.push(`${pendingDay}: ${normalized}`);
+        pendingDay = null;
+      } else if (hasClosed && pendingDay) {
+        candidates.push(`${pendingDay}: ${normalized}`);
+        pendingDay = null;
+      }
+      grabNext -= 1;
+    }
+
+    if (/hours/i.test(normalized)) {
+      grabNext = 4;
+    }
+
+    if (hasDay && (hasTime || hasClosed)) {
+      candidates.push(normalized);
+      pendingDay = null;
+      continue;
+    }
+
+    if (hasDay && !hasTime) {
+      pendingDay = normalized;
+      continue;
+    }
+
+    if (hasTime && pendingDay) {
+      candidates.push(`${pendingDay}: ${normalized}`);
+      pendingDay = null;
+    }
+  }
+
+  return { periods: [], weekdayText: dedupeStrings(candidates) };
+}
+
+function extractHoursFromScraped(scraped: unknown): HoursData {
+  const data = scraped && typeof scraped === 'object' ? (scraped as Record<string, any>) : {};
+  const metadata = data.metadata && typeof data.metadata === 'object' ? data.metadata : {};
+  const ldItems = collectLdObjects(metadata.ld_json);
+  const fromLd = extractHoursFromLd(ldItems);
+  if (fromLd.weekdayText.length || fromLd.periods.length) return fromLd;
+  const text = String(data.data?.text || '');
+  return extractHoursFromText(text);
+}
+
+function getHoursCandidateLinks(
+  scraped: unknown,
+  baseUrl: string
+): Array<{ url: string; score: number }> {
+  const data = scraped && typeof scraped === 'object' ? (scraped as Record<string, any>) : {};
+  const links = Array.isArray(data.data?.links) ? data.data.links : [];
+  let base: URL | null = null;
+  try {
+    base = new URL(baseUrl);
+  } catch {
+    base = null;
+  }
+
+  const keywords: Array<{ key: string; score: number }> = [
+    { key: 'hours', score: 100 },
+    { key: 'ourservices', score: 95 },
+    { key: 'services', score: 90 },
+    { key: 'service', score: 85 },
+    { key: 'programs', score: 80 },
+    { key: 'program', score: 75 },
+    { key: 'contact', score: 70 },
+    { key: 'about', score: 60 },
+    { key: 'locations', score: 55 },
+    { key: 'location', score: 50 },
+  ];
+
+  const seen = new Set<string>();
+  const candidates: Array<{ url: string; score: number }> = [];
+
+  for (const link of links) {
+    const href = typeof link?.href === 'string' ? link.href : '';
+    if (!href) continue;
+    let url: URL;
+    try {
+      url = new URL(href, baseUrl);
+    } catch {
+      continue;
+    }
+    if (base && url.origin !== base.origin) continue;
+    if (url.href === baseUrl) continue;
+    if (seen.has(url.href)) continue;
+
+    const path = `${url.pathname}${url.search}`.toLowerCase();
+    const text = typeof link?.text === 'string' ? link.text.toLowerCase() : '';
+    let score = 0;
+    for (const keyword of keywords) {
+      if (path.includes(keyword.key) || text.includes(keyword.key)) {
+        score = Math.max(score, keyword.score);
+      }
+    }
+
+    if (score > 0) {
+      seen.add(url.href);
+      candidates.push({ url: url.href, score });
+    }
+  }
+
+  return candidates.sort((a, b) => b.score - a.score);
+}
+
 function extractContactFromLinks(links: Array<{ href?: string }>): {
   phone: string;
   email: string;
@@ -172,7 +501,12 @@ function extractContactFromLinks(links: Array<{ href?: string }>): {
   return { phone, email };
 }
 
-function buildSanityDoc(scraped: unknown, category: string, fallbackUrl: string): SanityDoc {
+function buildSanityDoc(
+  scraped: unknown,
+  category: string,
+  fallbackUrl: string,
+  hours: HoursData
+): SanityDoc {
   const data = scraped && typeof scraped === 'object' ? (scraped as Record<string, any>) : {};
   const metadata = data.metadata && typeof data.metadata === 'object' ? data.metadata : {};
   const ldItems = collectLdObjects(metadata.ld_json);
@@ -185,7 +519,7 @@ function buildSanityDoc(scraped: unknown, category: string, fallbackUrl: string)
     extractLdDescription(ldItems),
   ]);
 
-  const textFallback = normalizeWhitespace(String(data.data?.text || '')).slice(0, 240);
+  const textFallback = extractDescriptionFallback(String(data.data?.text || ''));
   const descriptionText = firstNonEmpty([rawDescription, textFallback]);
 
   const address = extractLdAddress(ldItems);
@@ -194,7 +528,7 @@ function buildSanityDoc(scraped: unknown, category: string, fallbackUrl: string)
   const links = Array.isArray(data.data?.links) ? data.data.links : [];
   const contactFromLinks = extractContactFromLinks(links);
 
-  const website = firstNonEmpty([data.final_url, data.url, fallbackUrl]);
+  const website = toOriginUrl(firstNonEmpty([data.final_url, data.url, fallbackUrl]));
 
   return {
     name: name || website || '',
@@ -210,8 +544,8 @@ function buildSanityDoc(scraped: unknown, category: string, fallbackUrl: string)
     location,
     serviceTypes: [{ _id: category }],
     hoursOfOperation: {
-      periods: [],
-      weekdayText: [],
+      periods: hours.periods,
+      weekdayText: hours.weekdayText,
     },
     contact: {
       phone: contactFromLinks.phone,
@@ -219,6 +553,31 @@ function buildSanityDoc(scraped: unknown, category: string, fallbackUrl: string)
       website,
     },
   };
+}
+
+function parseAgentOutput(history: Array<{ role?: string; content?: unknown }>): SanityDoc | null {
+  const last = [...history].reverse().find((msg) => msg.role === 'assistant' && msg.content);
+  if (!last) return null;
+
+  const raw = typeof last.content === 'string' ? last.content : JSON.stringify(last.content || '');
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') return parsed as SanityDoc;
+  } catch {
+    const first = raw.indexOf('{');
+    const lastIdx = raw.lastIndexOf('}');
+    if (first !== -1 && lastIdx !== -1 && lastIdx > first) {
+      try {
+        const parsed = JSON.parse(raw.slice(first, lastIdx + 1));
+        if (parsed && typeof parsed === 'object') return parsed as SanityDoc;
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  return null;
 }
 
 async function main() {
@@ -257,8 +616,25 @@ async function main() {
   const urlsToScrape = orderedUrls.slice(0, maxUrls);
   const scraped: Array<{ url: string; result: unknown }> = [];
   const sanityDocs: SanityDoc[] = [];
+  const extracted: Array<{ url: string; result: SanityDoc; method: 'agent' | 'fallback' }> = [];
 
   for (const url of urlsToScrape) {
+    await resetMessages();
+    const agentHistory = await runAgent({
+      userMessage: `${SYSTEM_PROMPT}\nCategory: ${category}\nURL: ${url}`,
+      tools,
+      quiet: true,
+    });
+
+    const agentDoc = parseAgentOutput(agentHistory);
+    if (agentDoc) {
+      sanityDocs.push(agentDoc);
+      extracted.push({ url, result: agentDoc, method: 'agent' });
+      continue;
+    }
+
+    console.warn(`Agent extraction failed for ${url}, using deterministic fallback.`);
+
     const raw = await scraper.handler({
       userMessage: 'Scrape the provided URL.',
       toolArgs: { url },
@@ -270,7 +646,36 @@ async function main() {
       parsed = { error: 'Non-JSON scraper output', raw };
     }
     scraped.push({ url, result: parsed });
-    sanityDocs.push(buildSanityDoc(parsed, category, url));
+
+    let hours = extractHoursFromScraped(parsed);
+    if (hours.weekdayText.length === 0 && hours.periods.length === 0) {
+      const baseUrl =
+        typeof (parsed as Record<string, any>)?.final_url === 'string'
+          ? (parsed as Record<string, any>).final_url
+          : url;
+      const candidates = getHoursCandidateLinks(parsed, baseUrl).slice(0, HOURS_LINK_LIMIT);
+      for (const candidate of candidates) {
+        const candidateRaw = await scraper.handler({
+          userMessage: 'Scrape the provided URL for hours of operation.',
+          toolArgs: { url: candidate.url },
+        });
+        let candidateParsed: unknown;
+        try {
+          candidateParsed = JSON.parse(candidateRaw);
+        } catch {
+          candidateParsed = { error: 'Non-JSON scraper output', raw: candidateRaw };
+        }
+        const candidateHours = extractHoursFromScraped(candidateParsed);
+        if (candidateHours.weekdayText.length || candidateHours.periods.length) {
+          hours = candidateHours;
+          break;
+        }
+      }
+    }
+
+    const fallbackDoc = buildSanityDoc(parsed, category, url, hours);
+    sanityDocs.push(fallbackDoc);
+    extracted.push({ url, result: fallbackDoc, method: 'fallback' });
   }
 
   const sanityFile = path.join(outputDir, `${safeName(city)}_${safeName(category)}_sanity.json`);
@@ -288,6 +693,7 @@ async function main() {
     scraped,
     sanity: sanityDocs,
     sanity_file: sanityFile,
+    extracted,
   };
 
   const outputFile = path.join(outputDir, `${safeName(city)}_${safeName(category)}_pipeline.json`);

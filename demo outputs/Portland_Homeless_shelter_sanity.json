@@ -1,216 +1,467 @@
 [
   {
-    "name": "Overnight Emergency Shelters",
+    "name": "Burnside Shelter (SAFES)",
     "description": [
       {
         "_type": "block",
         "children": [
           {
             "_type": "span",
-            "text": "Learn more about the City's Emergency Overnight and Day Shelters."
+            "text": "This page summarizes information at the Burnside Shelter (SAFES) site located at 30 SW 2nd Avenue in Portland, OR."
           }
         ],
         "markDefs": [],
         "style": "normal"
       }
     ],
-    "address": "",
+    "address": "30 SW 2nd Ave, Portland, OR",
     "location": {
-      "latitude": null,
-      "longitude": null
+      "latitude": 45.5227446,
+      "longitude": -122.6721086
     },
     "serviceTypes": [
       {
-        "_id": "Homeless shelter"
+        "_id": "emergency_shelter"
       }
     ],
     "hoursOfOperation": {
-      "periods": [],
-      "weekdayText": []
+      "periods": [
+        {
+          "open": {
+            "day": 1,
+            "time": "2000"
+          },
+          "close": {
+            "day": 2,
+            "time": "0600"
+          }
+        }
+      ],
+      "weekdayText": ["Nightly: 8:00 PM – 6:00 AM"]
     },
     "contact": {
-      "phone": "503-823-1340",
+      "phone": "503-227-0810",
       "email": "shelterservices@portlandoregon.gov",
-      "website": "https://www.portland.gov/shelter-services/overnight-emergency-shelters"
+      "website": "https://www.portland.gov/shelter-services/overnight-emergency-shelters/burnside-shelter-safes-30-sw-2nd-ave"
     }
   },
   {
-    "name": "Emergency Shelters — Homeless Services Department",
+    "name": "Homeless Services Department",
     "description": [
       {
         "_type": "block",
         "children": [
           {
             "_type": "span",
-            "text": "Learn how we're providing immediate and temporary shelter for those experiencing homelessness across Multnomah County."
+            "text": "Emergency shelters provide immediate and temporary shelter for those experiencing homelessness. They also include spaces to sleep, restrooms, laundry rooms, and food access (equipped with full kitchens)."
           }
         ],
         "markDefs": [],
         "style": "normal"
       }
     ],
-    "address": "",
+    "address": "null",
     "location": {
       "latitude": null,
       "longitude": null
     },
     "serviceTypes": [
       {
-        "_id": "Homeless shelter"
+        "_id": "emergency_shelter"
+      },
+      {
+        "_id": "day_center"
       }
     ],
     "hoursOfOperation": {
-      "periods": [],
-      "weekdayText": []
+      "periods": [
+        {
+          "open": {
+            "day": 0,
+            "time": "0000"
+          },
+          "close": {
+            "day": 0,
+            "time": "2359"
+          }
+        }
+      ],
+      "weekdayText": ["Open 24/7"]
     },
     "contact": {
-      "phone": "",
+      "phone": "null",
       "email": "hsd@multco.us",
-      "website": "https://hsd.multco.us/emergency-shelters/"
+      "website": "https://hsd.multco.us/"
     }
   },
   {
-    "name": "Shelters — Transition Projects",
+    "name": "SE Grand Recovery Shelter",
     "description": [
       {
         "_type": "block",
         "children": [
           {
             "_type": "span",
-            "text": ".fe-681298680a5f3e065b661f9f { --grid-gutter: calc(var(--sqs-mobile-site-gutter, 6vw) - 11.0px); --cell-max-width: calc( ( var(--sqs-site-max-width, 1500px) - (11.0px * (8 - 1)) ) / 8 ); display: grid; position: relative; grid-area: 1/1/-1/"
+            "text": "Transition Projects is proud to partner with the City of Portland to open a new overnight, recovery-oriented shelter — providing an essential step in helping people move from homelessness to housing. The SE Grand Recovery Shelter will provide 140 overnight shelter beds — with the ability to expand to 200 beds during severe weather — for people who wish to be in an alcohol- and drug-free environment. While participants are in this shelter, we’ll work alongside them to take the next steps in their recovery and housing journey."
           }
         ],
         "markDefs": [],
         "style": "normal"
       }
     ],
-    "address": "",
+    "address": "665 Northwest Hoyt Street, Portland, OR 97209",
     "location": {
-      "latitude": null,
-      "longitude": null
+      "latitude": 45.5276521,
+      "longitude": -122.67732
     },
     "serviceTypes": [
       {
-        "_id": "Homeless shelter"
+        "_id": "recovery-shelter"
       }
     ],
     "hoursOfOperation": {
-      "periods": [],
-      "weekdayText": []
+      "periods": [
+        {
+          "open": {
+            "day": 0,
+            "time": "2100"
+          },
+          "close": {
+            "day": 1,
+            "time": "0700"
+          }
+        }
+      ],
+      "weekdayText": ["Sunday: 9:00 PM – 7:00 AM", "Monday: 9:00 PM – 7:00 AM"]
     },
     "contact": {
-      "phone": "",
+      "phone": null,
       "email": "volunteer@tprojects.org",
-      "website": "https://www.tprojects.org/shelters"
+      "website": "https://www.tprojects.org/news/se-grand"
     }
   },
   {
-    "name": "Access Denied",
+    "name": "Transition Projects",
     "description": [
       {
         "_type": "block",
         "children": [
           {
             "_type": "span",
-            "text": "Access Denied You don't have permission to access \"http://www.corporatehousing.com/or/portland/temporary-housing\" on this server. Reference #18.97f4d517.1769382006.427168d5 https://errors.edgesuite.net/18.97f4d517.1769382006.427168d5"
+            "text": "Helping people secure – and retain – permanent housing is the ultimate goal of our work. We do this by placing people into rental apartments throughout the Portland metro area, and by operating three buildings for those moving from homelessness to housing. We provide short- and long-term support for participants to rent housing units throughout the metro area. During the past year alone, we helped more than 900 people secure housing. But our work doesn't end there. We remain engaged, providing the follow-up services critical to successful placements and ensuring that once housed, people stay housed."
           }
         ],
         "markDefs": [],
         "style": "normal"
       }
     ],
-    "address": "",
+    "address": "null",
     "location": {
       "latitude": null,
       "longitude": null
     },
     "serviceTypes": [
       {
-        "_id": "Homeless shelter"
+        "_id": "housing"
       }
     ],
     "hoursOfOperation": {
-      "periods": [],
-      "weekdayText": []
+      "periods": [
+        {
+          "open": {
+            "day": 0,
+            "time": "0900"
+          },
+          "close": {
+            "day": 0,
+            "time": "1700"
+          }
+        }
+      ],
+      "weekdayText": ["Sunday: 9:00 AM – 5:00 PM"]
     },
     "contact": {
-      "phone": "",
-      "email": "",
-      "website": "https://www.corporatehousing.com/or/portland/temporary-housing"
+      "phone": "855-425-5544",
+      "email": "volunteer@tprojects.org",
+      "website": "https://www.tprojects.org"
     }
   },
   {
-    "name": "Temporary Alternative Shelter Sites (TASS)",
+    "name": "Blanchet House",
     "description": [
       {
         "_type": "block",
         "children": [
           {
             "_type": "span",
-            "text": "Temporary Alternative Shelter Sites (TASS) Information View full size image of Image of person sitting on a picnic table under a sign reading \"Empathy\" This page was last updated Feb. 26, 2024Portland's Temporary Alternative Shelter Sites p"
+            "text": "Blanchet House is a nonprofit organization in Portland, OR, offering food, clothing, and life-saving shelter and residential programs."
           }
         ],
         "markDefs": [],
         "style": "normal"
       }
     ],
-    "address": "",
+    "address": "310 NW Glisan St, Portland, OR 97209",
     "location": {
-      "latitude": null,
-      "longitude": null
+      "latitude": 45.5235,
+      "longitude": -122.6764
     },
     "serviceTypes": [
       {
-        "_id": "Homeless shelter"
+        "_id": "food"
+      },
+      {
+        "_id": "shelter"
+      },
+      {
+        "_id": "clothing"
+      },
+      {
+        "_id": "residential"
       }
     ],
     "hoursOfOperation": {
-      "periods": [],
-      "weekdayText": []
+      "periods": [
+        {
+          "open": {
+            "day": 1,
+            "time": "0630"
+          },
+          "close": {
+            "day": 1,
+            "time": "0725"
+          }
+        },
+        {
+          "open": {
+            "day": 1,
+            "time": "1130"
+          },
+          "close": {
+            "day": 1,
+            "time": "1225"
+          }
+        },
+        {
+          "open": {
+            "day": 1,
+            "time": "1700"
+          },
+          "close": {
+            "day": 1,
+            "time": "1755"
+          }
+        },
+        {
+          "open": {
+            "day": 2,
+            "time": "0630"
+          },
+          "close": {
+            "day": 2,
+            "time": "0725"
+          }
+        },
+        {
+          "open": {
+            "day": 2,
+            "time": "1130"
+          },
+          "close": {
+            "day": 2,
+            "time": "1225"
+          }
+        },
+        {
+          "open": {
+            "day": 2,
+            "time": "1700"
+          },
+          "close": {
+            "day": 2,
+            "time": "1755"
+          }
+        },
+        {
+          "open": {
+            "day": 3,
+            "time": "0630"
+          },
+          "close": {
+            "day": 3,
+            "time": "0725"
+          }
+        },
+        {
+          "open": {
+            "day": 3,
+            "time": "1130"
+          },
+          "close": {
+            "day": 3,
+            "time": "1225"
+          }
+        },
+        {
+          "open": {
+            "day": 3,
+            "time": "1700"
+          },
+          "close": {
+            "day": 3,
+            "time": "1755"
+          }
+        },
+        {
+          "open": {
+            "day": 4,
+            "time": "0630"
+          },
+          "close": {
+            "day": 4,
+            "time": "0725"
+          }
+        },
+        {
+          "open": {
+            "day": 4,
+            "time": "1130"
+          },
+          "close": {
+            "day": 4,
+            "time": "1225"
+          }
+        },
+        {
+          "open": {
+            "day": 4,
+            "time": "1700"
+          },
+          "close": {
+            "day": 4,
+            "time": "1755"
+          }
+        },
+        {
+          "open": {
+            "day": 5,
+            "time": "0630"
+          },
+          "close": {
+            "day": 5,
+            "time": "0725"
+          }
+        },
+        {
+          "open": {
+            "day": 5,
+            "time": "1130"
+          },
+          "close": {
+            "day": 5,
+            "time": "1225"
+          }
+        },
+        {
+          "open": {
+            "day": 5,
+            "time": "1700"
+          },
+          "close": {
+            "day": 5,
+            "time": "1755"
+          }
+        },
+        {
+          "open": {
+            "day": 6,
+            "time": "0630"
+          },
+          "close": {
+            "day": 6,
+            "time": "0725"
+          }
+        },
+        {
+          "open": {
+            "day": 6,
+            "time": "1130"
+          },
+          "close": {
+            "day": 6,
+            "time": "1225"
+          }
+        },
+        {
+          "open": {
+            "day": 6,
+            "time": "1700"
+          },
+          "close": {
+            "day": 6,
+            "time": "1755"
+          }
+        }
+      ],
+      "weekdayText": [
+        "Monday: 6:30 AM – 7:25 AM, 11:30 AM – 12:25 PM, 5:00 PM – 5:55 PM",
+        "Tuesday: 6:30 AM – 7:25 AM, 11:30 AM – 12:25 PM, 5:00 PM – 5:55 PM",
+        "Wednesday: 6:30 AM – 7:25 AM, 11:30 AM – 12:25 PM, 5:00 PM – 5:55 PM",
+        "Thursday: 6:30 AM – 7:25 AM, 11:30 AM – 12:25 PM, 5:00 PM – 5:55 PM",
+        "Friday: 6:30 AM – 7:25 AM, 11:30 AM – 12:25 PM, 5:00 PM – 5:55 PM",
+        "Saturday: 6:30 AM – 7:25 AM, 11:30 AM – 12:25 PM, 5:00 PM – 5:55 PM",
+        "Sunday: Closed"
+      ]
     },
     "contact": {
-      "phone": "5038234000",
-      "email": "MayorWheeler@portlandoregon.gov",
-      "website": "https://www.portland.gov/wheeler/shelter-sites"
+      "phone": "503-241-4340",
+      "email": "info@blanchethouse.org",
+      "website": "https://blanchethouse.org/"
     }
   },
   {
-    "name": "Attention Required! | Cloudflare",
+    "name": "New Narrative",
     "description": [
       {
         "_type": "block",
         "children": [
           {
             "_type": "span",
-            "text": "Please enable cookies. Sorry, you have been blocked You are unable to access findhelp.cloud Why have I been blocked? This website is using a security service to protect itself from online attacks. The action you just performed triggered the"
+            "text": "Safe, stable housing is essential to people’s mental health and well-being. It can also play a critical role in recovery, helping to rebuild and maintain independence, develop day-to-day routines, and build confidence. This is especially true when housing includes access to support services. At New Narrative, we offer a variety of housing options to meet different needs."
           }
         ],
         "markDefs": [],
         "style": "normal"
       }
     ],
-    "address": "",
+    "address": "8915 SW Center St, Tigard, OR 97223",
     "location": {
       "latitude": null,
       "longitude": null
     },
     "serviceTypes": [
       {
-        "_id": "Homeless shelter"
+        "_id": "transitional_housing"
+      },
+      {
+        "_id": "permanent_supportive_housing"
+      },
+      {
+        "_id": "independent_housing"
       }
     ],
     "hoursOfOperation": {
-      "periods": [],
-      "weekdayText": []
+      "periods": null,
+      "weekdayText": null
     },
     "contact": {
-      "phone": "",
-      "email": "",
-      "website": "https://www.findhelp.org/housing/short-term-housing--portland-or"
+      "phone": "(503) 726-3690",
+      "email": "info@NewNarrativePDX.org",
+      "website": "https://newnarrativepdx.org"
     }
   },
   {
-    "name": "Homelessness Assistance Guide",
+    "name": "Portland Homelessness Assistance",
     "description": [
       {
         "_type": "block",
@@ -224,129 +475,347 @@
         "style": "normal"
       }
     ],
-    "address": "",
+    "address": null,
     "location": {
       "latitude": null,
       "longitude": null
     },
     "serviceTypes": [
       {
-        "_id": "Homeless shelter"
+        "_id": "homeless_shelter"
       }
     ],
     "hoursOfOperation": {
-      "periods": [],
-      "weekdayText": []
+      "periods": [
+        {
+          "open": {
+            "day": 0,
+            "time": "2000"
+          },
+          "close": {
+            "day": 1,
+            "time": "0600"
+          }
+        },
+        {
+          "open": {
+            "day": 1,
+            "time": "2000"
+          },
+          "close": {
+            "day": 2,
+            "time": "0600"
+          }
+        },
+        {
+          "open": {
+            "day": 2,
+            "time": "2000"
+          },
+          "close": {
+            "day": 3,
+            "time": "0600"
+          }
+        },
+        {
+          "open": {
+            "day": 3,
+            "time": "2000"
+          },
+          "close": {
+            "day": 4,
+            "time": "0600"
+          }
+        },
+        {
+          "open": {
+            "day": 4,
+            "time": "2000"
+          },
+          "close": {
+            "day": 5,
+            "time": "0600"
+          }
+        },
+        {
+          "open": {
+            "day": 5,
+            "time": "2000"
+          },
+          "close": {
+            "day": 6,
+            "time": "0600"
+          }
+        },
+        {
+          "open": {
+            "day": 6,
+            "time": "2000"
+          },
+          "close": {
+            "day": 0,
+            "time": "0600"
+          }
+        }
+      ],
+      "weekdayText": [
+        "Sunday: 8:00 PM – 6:00 AM",
+        "Monday: 8:00 PM – 6:00 AM",
+        "Tuesday: 8:00 PM – 6:00 AM",
+        "Wednesday: 8:00 PM – 6:00 AM",
+        "Thursday: 8:00 PM – 6:00 AM",
+        "Friday: 8:00 PM – 6:00 AM",
+        "Saturday: 8:00 PM – 6:00 AM"
+      ]
     },
     "contact": {
-      "phone": "5038234000",
+      "phone": "503-823-1340",
       "email": "PortlandSolutions@portlandoregon.gov",
       "website": "https://www.portland.gov/portland-solutions/homelessness-assistance-guide"
     }
   },
   {
-    "name": "Supportive housing services: Addressing homelessness in greater Portland | Metro",
+    "name": "Shelter and Homeless Services",
     "description": [
       {
         "_type": "block",
         "children": [
           {
             "_type": "span",
-            "text": "Supportive housing services: Addressing homelessness in greater Portland Rising housing costs and stagnant wages have led to a housing crisis and increased homelessness. Thanks to voters, funds are now available to support housing access an"
+            "text": "Shelter and Homeless Service available in the Multnomah County Area."
           }
         ],
         "markDefs": [],
         "style": "normal"
       }
     ],
-    "address": "",
+    "address": null,
     "location": {
       "latitude": null,
       "longitude": null
     },
     "serviceTypes": [
       {
-        "_id": "Homeless shelter"
+        "_id": "shelter"
+      },
+      {
+        "_id": "homeless_services"
       }
     ],
     "hoursOfOperation": {
-      "periods": [],
-      "weekdayText": []
+      "periods": [
+        {
+          "open": {
+            "day": 0,
+            "time": "0000"
+          },
+          "close": {
+            "day": 6,
+            "time": "2359"
+          }
+        }
+      ],
+      "weekdayText": ["Open 24 hours"]
     },
     "contact": {
-      "phone": "+15037971700",
-      "email": "housinginfo@oregonmetro.gov",
-      "website": "https://www.oregonmetro.gov/what-metro-does/housing-and-homelessness/supportive-housing-services"
+      "phone": "971-500-9163",
+      "email": "iddhousingassistance@multco.us",
+      "website": "https://multco.us/info/shelter-and-homeless-services"
     }
   },
   {
-    "name": "Homeless Resources - Blanchet House",
+    "name": "Catholic Charities of Oregon - Homeless Services",
     "description": [
       {
         "_type": "block",
         "children": [
           {
             "_type": "span",
-            "text": "Resources for understanding homelessness, surviving being homeless, and connecting with partners in Portland."
+            "text": "Our Homeless Services team removes barriers to finding permanent housing and wraps clients in a suite of supportive services as they work to re-establish their stability and independence. We offer case management, employment assistance, housing, drop-in services, community outreach, and more. Through our Kenton Women's Village, Housing Transitions Program, and Street Outreach team, we give those experiencing houselessness the comprehensive support and resources they need to move forward and thrive."
           }
         ],
         "markDefs": [],
         "style": "normal"
       }
     ],
-    "address": "",
+    "address": "2740 SE Powell Blvd, Portland, OR 97202",
     "location": {
-      "latitude": null,
-      "longitude": null
+      "latitude": 45.5051,
+      "longitude": -122.6177
     },
     "serviceTypes": [
       {
-        "_id": "Homeless shelter"
+        "_id": "homeless-services"
+      },
+      {
+        "_id": "housing-transitions"
+      },
+      {
+        "_id": "kenton-womens-village"
+      },
+      {
+        "_id": "chiles-house"
       }
     ],
     "hoursOfOperation": {
-      "periods": [],
-      "weekdayText": []
+      "periods": [
+        {
+          "open": {
+            "day": 1,
+            "time": "1000"
+          },
+          "close": {
+            "day": 1,
+            "time": "1300"
+          }
+        },
+        {
+          "open": {
+            "day": 2,
+            "time": "1000"
+          },
+          "close": {
+            "day": 2,
+            "time": "1300"
+          }
+        },
+        {
+          "open": {
+            "day": 3,
+            "time": "1000"
+          },
+          "close": {
+            "day": 3,
+            "time": "1300"
+          }
+        },
+        {
+          "open": {
+            "day": 4,
+            "time": "1000"
+          },
+          "close": {
+            "day": 4,
+            "time": "1300"
+          }
+        },
+        {
+          "open": {
+            "day": 5,
+            "time": "1000"
+          },
+          "close": {
+            "day": 5,
+            "time": "1300"
+          }
+        }
+      ],
+      "weekdayText": [
+        "Monday: 10:00 AM – 1:00 PM",
+        "Tuesday: 10:00 AM – 1:00 PM",
+        "Wednesday: 10:00 AM – 1:00 PM",
+        "Thursday: 10:00 AM – 1:00 PM",
+        "Friday: 10:00 AM – 1:00 PM"
+      ]
     },
     "contact": {
-      "phone": "503-241-4340",
-      "email": "info@blanchethouse.org",
-      "website": "https://blanchethouse.org/resources/"
+      "phone": "(971) 222-1880",
+      "email": "htpemail@ccoregon.org",
+      "website": "https://www.catholiccharitiesoregon.org/services/homeless-services/"
     }
   },
   {
-    "name": "List of shelters — Homeless Services Department",
+    "name": "Family Village Shelter",
     "description": [
       {
         "_type": "block",
         "children": [
           {
             "_type": "span",
-            "text": "See the list of shelters funded by the Homeless Services Department, including congregate, village and motel shelters."
+            "text": "Path Home empowers families with children to get back into housing and stay there. We envision a community where no family experiences homelessness and where every family receives the support and compassion necessary to thrive."
           }
         ],
         "markDefs": [],
         "style": "normal"
       }
     ],
-    "address": "",
+    "address": "6220 SE 92nd Ave, Portland, OR 97266",
     "location": {
       "latitude": null,
       "longitude": null
     },
     "serviceTypes": [
       {
-        "_id": "Homeless shelter"
+        "_id": "homeless_shelter"
       }
     ],
     "hoursOfOperation": {
-      "periods": [],
-      "weekdayText": []
+      "periods": [
+        {
+          "open": {
+            "day": 1,
+            "time": "0900"
+          },
+          "close": {
+            "day": 1,
+            "time": "1700"
+          }
+        },
+        {
+          "open": {
+            "day": 2,
+            "time": "0900"
+          },
+          "close": {
+            "day": 2,
+            "time": "1700"
+          }
+        },
+        {
+          "open": {
+            "day": 3,
+            "time": "0900"
+          },
+          "close": {
+            "day": 3,
+            "time": "1700"
+          }
+        },
+        {
+          "open": {
+            "day": 4,
+            "time": "0900"
+          },
+          "close": {
+            "day": 4,
+            "time": "1700"
+          }
+        },
+        {
+          "open": {
+            "day": 5,
+            "time": "0900"
+          },
+          "close": {
+            "day": 5,
+            "time": "1700"
+          }
+        }
+      ],
+      "weekdayText": [
+        "Monday: 9:00 AM – 5:00 PM",
+        "Tuesday: 9:00 AM – 5:00 PM",
+        "Wednesday: 9:00 AM – 5:00 PM",
+        "Thursday: 9:00 AM – 5:00 PM",
+        "Friday: 9:00 AM – 5:00 PM",
+        "Saturday: Closed",
+        "Sunday: Closed"
+      ]
     },
     "contact": {
-      "phone": "",
-      "email": "shelter.access@tprojects.org",
-      "website": "https://hsd.multco.us/emergency-shelters/list-of-shelters/"
+      "phone": "(503) 504-5902",
+      "email": "info@path-home.org",
+      "website": "https://www.path-home.org"
     }
   }
 ]
