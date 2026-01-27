@@ -6,12 +6,9 @@
     "start": "npx tsx index.ts",
     "demo": "tsx scripts/demo.ts",
     "demo2": "tsx scripts/batchExtract.ts",
-<<<<<<< Updated upstream
     "demo3": "tsx scripts/discoverAndExtract.ts",
-=======
     "query": "tsx scripts/queryGeneratorCli.ts",
     "provScorer": "tsx scripts/providerQualityScorer.ts",
->>>>>>> Stashed changes
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
