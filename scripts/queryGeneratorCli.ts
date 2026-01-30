@@ -1,6 +1,7 @@
-import { runQueryGenerator, saveQueriesToFile } from '../src/agents/queryGenerator.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { runQueryGenerator, saveQueriesToFile } from '../src/agents/queryGenerator.js';
 
 async function main() {
   const [city, state, category] = process.argv.slice(2);
