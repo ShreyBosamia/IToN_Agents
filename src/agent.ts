@@ -1,4 +1,4 @@
-import type { AIMessage, RegisteredTool } from '../types';
+import type { AIMessage, RegisteredTool } from './types';
 
 import { runLLM } from './llm';
 import { addMessages, getMessages } from './memory';

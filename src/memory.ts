@@ -1,6 +1,6 @@
 import { JSONFilePreset } from 'lowdb/node';
 
-import type { AIMessage } from '../types';
+import type { AIMessage } from './types';
 
 type Data = { messages: AIMessage[] };
 

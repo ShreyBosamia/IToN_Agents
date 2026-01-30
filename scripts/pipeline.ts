@@ -2,8 +2,8 @@ import 'dotenv/config';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { runQueryGenerator, saveQueriesToFile } from '../queryGeneratorAgents.js';
-import { runSearchAgent } from '../searchAgent.js';
+import { runQueryGenerator, saveQueriesToFile } from '../src/agents/queryGenerator.js';
+import { runSearchAgent } from '../src/agents/searchAgent.js';
 import { runAgent } from '../src/agent.js';
 import { resetMessages } from '../src/memory.js';
 import { SYSTEM_PROMPT } from '../src/systemPrompt.js';
@@ -590,7 +590,7 @@ async function main() {
 
   const perQuery = parseIntArg(perQueryArg, 3);
   const maxUrls = parseIntArg(maxUrlsArg, 10);
-  const outputDir = path.resolve(process.cwd(), 'demo outputs');
+  const outputDir = path.resolve(process.cwd(), 'outputs');
   await mkdir(outputDir, { recursive: true });
 
   const scraper = tools.find((t) => t.definition.function.name === 'scrape_website');

@@ -1,4 +1,4 @@
-import { runQueryGenerator, saveQueriesToFile } from '../queryGeneratorAgents';
+import { runQueryGenerator, saveQueriesToFile } from '../src/agents/queryGenerator.js';
 
 async function main() {
   const [city, state, category] = process.argv.slice(2);

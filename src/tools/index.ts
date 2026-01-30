@@ -2,7 +2,7 @@ import { createHash } from 'crypto';
 
 import { chromium } from 'playwright';
 
-import type { RegisteredTool } from '../../types';
+import type { RegisteredTool } from '../types';
 
 const MAX_TEXT = 8000;
 const MAX_HTML = 12000;

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { openai } from './src/ai';
+import { openai } from '../ai';
 
 /**
  * Query Generator Agent

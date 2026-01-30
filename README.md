@@ -181,12 +181,12 @@ This will:
 - `src/tools/index.ts` – `fetch_html_content` tool implementation.
 - `src/systemPrompt.ts` – system instructions and target URL.
 - `src/memory.ts` – lightweight message storage (`db.json`).
-- `queryGeneratorAgents.ts` – Query Generator functions:
+- `src/agents/queryGenerator.ts` – Query Generator functions:
   - `runQueryGenerator(city, state, category)` → returns 10 queries as a `string[]`
   - `saveQueriesToFile(city, category, queries)` → writes the `.txt` file described above.
 
 - `scripts/queryGeneratorCli.ts` – CLI wrapper for the Query Generator, used by `npm run query`.
-- `searchAgent.ts` – Search Agent functions (Brave Search API).
+- `src/agents/searchAgent.ts` – Search Agent functions (Brave Search API).
 - `scripts/pipeline.ts` – Deterministic pipeline demo (query → search → scrape).
 
 ---
@@ -196,12 +196,12 @@ This will:
 ### Models and temperature
 
 - The default model is `gpt-4o-mini` as defined in `src/llm.ts` and used similarly in the Query Generator.
-- You can change the model in `src/llm.ts` and in `queryGeneratorAgents.ts` if you want a different OpenAI model (ensure it supports Chat Completions and tools).
+- You can change the model in `src/llm.ts` and in `src/agents/queryGenerator.ts` if you want a different OpenAI model (ensure it supports Chat Completions and tools).
 - Temperature is kept low (`0.1–0.2`) for predictable, parseable responses.
 
 ### Query Generator prompt / categories
 
-- The Query Generator’s behavior is controlled by a system prompt and a few-shot example inside `queryGeneratorAgents.ts`.
+- The Query Generator’s behavior is controlled by a system prompt and a few-shot example inside `src/agents/queryGenerator.ts`.
 - To tune behavior:
   - Add new categories (e.g., `MENTAL_HEALTH`, `DISABILITY_SERVICES`) and update the prompt description.
   - Adjust the example to emphasize new phrasing or additional `site:` filters.
