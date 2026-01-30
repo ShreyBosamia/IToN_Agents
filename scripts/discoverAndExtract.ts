@@ -17,7 +17,7 @@ async function getLastedModified(url: string): Promise<string | null> {
     }
 
     return res.headers.get('Last-Modified');
-  } catch (err) {
+  } catch {
     return null;
   }
 }

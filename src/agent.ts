@@ -1,8 +1,7 @@
-import type { AIMessage, RegisteredTool } from './types';
-
 import { runLLM } from './llm';
 import { addMessages, getMessages } from './memory';
 import { runTool } from './toolRunner';
+import type { AIMessage, RegisteredTool } from './types';
 import { logMessage, showLoader } from './ui';
 
 type AssistantMessage = Extract<AIMessage, { role: 'assistant' }>;

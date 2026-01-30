@@ -2,9 +2,9 @@ import 'dotenv/config';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { runAgent } from '../src/agent.js';
 import { runQueryGenerator, saveQueriesToFile } from '../src/agents/queryGenerator.js';
 import { runSearchAgent } from '../src/agents/searchAgent.js';
-import { runAgent } from '../src/agent.js';
 import { resetMessages } from '../src/memory.js';
 import { SYSTEM_PROMPT } from '../src/systemPrompt.js';
 import { tools } from '../src/tools/index.js';

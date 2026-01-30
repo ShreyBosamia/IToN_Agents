@@ -79,12 +79,12 @@ category: FOOD_BANK
 
 const fewShotAssistant = `[
   "Salem OR food bank site:.org OR site:.gov",
-  "food pantry \"Salem, Oregon\"",
+  "food pantry \\"Salem, Oregon\\"",
   "free food boxes Salem OR",
   "emergency food assistance Marion County Oregon",
   "church food pantry Salem OR",
-  "mobile food bank \"Salem OR\"",
-  "community meal program \"Salem Oregon\"",
+  "mobile food bank \\"Salem OR\\"",
+  "community meal program \\"Salem Oregon\\"",
   "SNAP food resources Salem OR",
   "free groceries for families Salem OR",
   "low income food assistance Marion County OR"
