@@ -19,6 +19,162 @@ function isProviderLike(url: string, searchUrl: string) {
   return true;
 }
 
+/**
+ * Reusable function (NOT a tool) that crawls Oregon Food Bank Food Finder
+ * and returns top provider/detail URLs.
+ *
+ * This is exported so the new "statewide directory crawler" layer can reuse it
+ * without going through the tool-calling loop.
+ */
+export async function getFoodFinderTopUrls(params: {
+  city: string;
+  state: string;
+  category?: string;
+  n?: number;
+}): Promise<{
+  query: string;
+  n: number;
+  urls: string[];
+  source: 'foodfinder_directory';
+  error?: string;
+}> {
+  const { city, state, category, n } = params;
+
+  const limit = Math.max(1, Math.min(n ?? DEFAULT_N, MAX_N));
+  const q = `${(category ?? 'food pantry').trim()} ${city.trim()}, ${state.trim()}`.trim();
+  const searchUrl = `${BASE}?campaign=0&distance=nearby&q=${encodeURIComponent(q)}`;
+
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext({
+    locale: 'en-US',
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36',
+  });
+  const page = await context.newPage();
+
+  await page.route('**/*', (route) => {
+    const t = route.request().resourceType();
+    if (['image', 'media', 'font', 'stylesheet', 'websocket'].includes(t)) return route.abort();
+    route.continue();
+  });
+
+  page.setDefaultNavigationTimeout(30_000);
+
+  try {
+    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+
+    try {
+      await page.waitForLoadState('networkidle', { timeout: 10_000 });
+    } catch {
+      void 0;
+    }
+
+    await page.waitForTimeout(1000);
+
+    const found = new Set<string>();
+
+    const selectors = ['[role="listitem"]', 'li', 'article', '[data-testid*="result"]', 'a[href]'];
+
+    for (const sel of selectors) {
+      if (found.size >= limit) break;
+
+      const handles = await page.$$(sel);
+      const toTry = handles.slice(0, 30);
+
+      for (const h of toTry) {
+        if (found.size >= limit) break;
+
+        const before = page.url();
+
+        let href = '';
+        try {
+          href = await h.evaluate((el) => {
+            const a = el instanceof HTMLAnchorElement ? el : el.querySelector?.('a[href]');
+            return a ? (a as HTMLAnchorElement).href : '';
+          });
+        } catch {
+          void 0;
+        }
+
+        // If element has an anchor, prefer that.
+        if (href && isProviderLike(href, searchUrl)) {
+          found.add(href);
+          continue;
+        }
+
+        // If no anchor, try clicking the element to navigate.
+        if (!href) {
+          try {
+            await h.click({ timeout: 1500 });
+            await page.waitForTimeout(500);
+          } catch {
+            void 0;
+          }
+
+          const after = page.url();
+          if (after !== before && isProviderLike(after, searchUrl)) {
+            found.add(after);
+          }
+
+          // Navigate back if we changed pages.
+          if (after !== before) {
+            try {
+              await page.goBack({ waitUntil: 'domcontentloaded', timeout: 10_000 });
+              await page.waitForTimeout(500);
+            } catch {
+              // If back fails, re-open the search page.
+              try {
+                await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+                await page.waitForTimeout(500);
+              } catch {
+                void 0;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Fallback: scan all anchors on page
+    if (found.size < limit) {
+      const hrefs = await page.$$eval('a[href]', (as) =>
+        as.map((a) => (a as HTMLAnchorElement).href).filter(Boolean)
+      );
+
+      for (const h of hrefs) {
+        if (found.size >= limit) break;
+        if (isProviderLike(h, searchUrl)) found.add(h);
+      }
+    }
+
+    const urls = uniq(Array.from(found)).slice(0, limit);
+
+    if (urls.length === 0) {
+      return {
+        query: q,
+        n: limit,
+        urls: [],
+        source: 'foodfinder_directory',
+        error:
+          'No provider-like URLs found on FoodFinder (layout changed, results not rendered, or blocked).',
+      };
+    }
+
+    return { query: q, n: limit, urls, source: 'foodfinder_directory' };
+  } catch (e: any) {
+    return {
+      query: q,
+      n: limit,
+      urls: [],
+      source: 'foodfinder_directory',
+      error: e?.message ?? String(e),
+    };
+  } finally {
+    await context.close().catch(() => void 0);
+    await browser.close().catch(() => void 0);
+  }
+}
+
 export const foodFinderTopUrlsTool: RegisteredTool = {
   definition: {
     type: 'function',
@@ -47,147 +203,11 @@ export const foodFinderTopUrlsTool: RegisteredTool = {
       n?: number;
     };
 
-    const limit = Math.max(1, Math.min(n ?? DEFAULT_N, MAX_N));
-    const q = `${(category ?? 'food pantry').trim()} ${city.trim()}, ${state.trim()}`.trim();
-    const searchUrl = `${BASE}?campaign=0&distance=nearby&q=${encodeURIComponent(q)}`;
+    const out = await getFoodFinderTopUrls({ city, state, category, n });
 
-    const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({
-      locale: 'en-US',
-      userAgent:
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36',
+    return JSON.stringify({
+      action: 'foodFinderTopUrls',
+      ...out,
     });
-    const page = await context.newPage();
-
-    await page.route('**/*', (route) => {
-      const t = route.request().resourceType();
-      if (['image', 'media', 'font', 'stylesheet', 'websocket'].includes(t)) return route.abort();
-      route.continue();
-    });
-
-    page.setDefaultNavigationTimeout(30_000);
-
-    try {
-      await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-
-      try {
-        await page.waitForLoadState('networkidle', { timeout: 10_000 });
-      } catch {
-        void 0;
-      }
-
-      await page.waitForTimeout(1000);
-
-      const found = new Set<string>();
-
-      const selectors = [
-        '[role="listitem"]',
-        'li',
-        'article',
-        '[data-testid*="result"]',
-        'a[href]',
-      ];
-
-      for (const sel of selectors) {
-        if (found.size >= limit) break;
-
-        const handles = await page.$$(sel);
-        const toTry = handles.slice(0, 30);
-
-        for (const h of toTry) {
-          if (found.size >= limit) break;
-
-          const before = page.url();
-
-          let href = '';
-          try {
-            href = await h.evaluate((el) => {
-              const a = el instanceof HTMLAnchorElement ? el : el.querySelector?.('a[href]');
-              return a ? (a as HTMLAnchorElement).href : '';
-            });
-          } catch {
-            void 0;
-          }
-
-          if (href && isProviderLike(href, searchUrl)) {
-            found.add(href);
-            continue;
-          }
-
-          if (!href) {
-            try {
-              await h.click({ timeout: 1500 });
-              await page.waitForTimeout(500);
-            } catch {
-              void 0;
-            }
-
-            const after = page.url();
-            if (after !== before && isProviderLike(after, searchUrl)) {
-              found.add(after);
-            }
-
-            if (after !== before) {
-              try {
-                await page.goBack({ waitUntil: 'domcontentloaded', timeout: 10_000 });
-                await page.waitForTimeout(500);
-              } catch {
-                try {
-                  await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-                  await page.waitForTimeout(500);
-                } catch {
-                  void 0;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      if (found.size < limit) {
-        const hrefs = await page.$$eval('a[href]', (as) =>
-          as.map((a) => (a as HTMLAnchorElement).href).filter(Boolean)
-        );
-
-        for (const h of hrefs) {
-          if (found.size >= limit) break;
-          if (isProviderLike(h, searchUrl)) found.add(h);
-        }
-      }
-
-      const urls = uniq(Array.from(found)).slice(0, limit);
-
-      if (urls.length === 0) {
-        return JSON.stringify({
-          action: 'foodFinderTopUrls',
-          query: q,
-          n: limit,
-          urls: [],
-          source: 'foodfinder_directory',
-          error:
-            'No provider-like URLs found on FoodFinder (layout changed, results not rendered, or blocked).',
-        });
-      }
-
-      return JSON.stringify({
-        action: 'foodFinderTopUrls',
-        query: q,
-        n: limit,
-        urls,
-        source: 'foodfinder_directory',
-      });
-    } catch (e: any) {
-      return JSON.stringify({
-        action: 'foodFinderTopUrls',
-        query: q,
-        n: limit,
-        urls: [],
-        source: 'foodfinder_directory',
-        error: e?.message ?? String(e),
-      });
-    } finally {
-      await context.close().catch(() => void 0);
-      await browser.close().catch(() => void 0);
-    }
   },
 };

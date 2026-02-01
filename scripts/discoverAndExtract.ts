@@ -1,6 +1,6 @@
 import { readFile } from 'fs/promises';
 
-async function getLastedModified(url: string): Promise<string | null> {
+async function getLastModified(url: string): Promise<string | null> {
   try {
     let res = await fetch(url, {
       method: 'HEAD',
@@ -15,7 +15,7 @@ async function getLastedModified(url: string): Promise<string | null> {
     }
 
     return res.headers.get('Last-Modified');
-  } catch (err) {
+  } catch {
     return null;
   }
 }
@@ -28,9 +28,10 @@ async function run() {
     .filter(Boolean);
 
   for (const url of urls) {
-    const lastMod = await getLastedModified(url);
+    const lastMod = await getLastModified(url);
     console.log(`${url} -> ${lastMod}`);
   }
 }
 
 run();
+
