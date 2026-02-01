@@ -28,9 +28,11 @@ Originally, this project focused on fetching and analyzing the HTML of a single 
 
    ```env
    OPENAI_API_KEY=your_openai_api_key
+   BRAVE_SEARCH_API_KEY=your_brave_search_api_key
    ```
 
    Note: the env variable name is `OPENAI_API_KEY` (no extra underscore).
+   The Brave Search key is required for the search stage of the pipeline.
 
 3. (Optional) Target website for the original HTML-analysis agent
 
@@ -125,6 +127,31 @@ low income food assistance Marion County OR
 
 Downstream agents (the Search Agent) can read this file line-by-line and treat each line as an independent search query. This matches the example queries shown in the project’s AI pipeline diagram.
 
+### 3. Deterministic pipeline demo (query → search → scrape)
+
+This pipeline connects the Query Generator, a Brave Search-based Search Agent, and the scraper tool into a deterministic, step-by-step flow.
+
+```bash
+npm run pipeline -- "<CITY>" "<STATE_ABBREV>" "<CATEGORY>" [perQuery] [maxUrls]
+```
+
+Example:
+
+```bash
+npm run pipeline -- "Salem" "OR" "FOOD_BANK" 3 10
+```
+
+This will:
+
+1. Generate 10 queries and save them to `<City>_<CATEGORY>_queries.txt`
+2. Search each query via Brave and collect the top N URLs per query
+3. Scrape the first `maxUrls` unique URLs
+4. Write the full pipeline output to:
+
+```text
+<City>_<CATEGORY>_pipeline.json
+```
+
 ---
 
 ## What it does
@@ -159,6 +186,8 @@ Downstream agents (the Search Agent) can read this file line-by-line and treat e
   - `saveQueriesToFile(city, category, queries)` → writes the `.txt` file described above.
 
 - `scripts/queryGeneratorCli.ts` – CLI wrapper for the Query Generator, used by `npm run query`.
+- `searchAgent.ts` – Search Agent functions (Brave Search API).
+- `scripts/pipeline.ts` – Deterministic pipeline demo (query → search → scrape).
 
 ---
 

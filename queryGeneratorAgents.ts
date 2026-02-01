@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 
 import { openai } from './src/ai';
 
@@ -134,10 +135,18 @@ async function runQueryGenerator(city: string, state: string, category: string):
 /**
  * Write queries to a text file named "<city>_<category>_queries.txt".
  */
-function saveQueriesToFile(city: string, category: string, queries: string[]) {
+function saveQueriesToFile(city: string, category: string, queries: string[], outputDir?: string) {
   const safeCity = city.replace(/\s+/g, '_');
   const safeCategory = category.replace(/\s+/g, '_');
   const filename = `${safeCity}_${safeCategory}_queries.txt`;
+
+  if (outputDir) {
+    const resolvedDir = path.resolve(outputDir);
+    fs.mkdirSync(resolvedDir, { recursive: true });
+    const filepath = path.join(resolvedDir, filename);
+    fs.writeFileSync(filepath, queries.join('\n'), 'utf-8');
+    return filepath;
+  }
 
   fs.writeFileSync(filename, queries.join('\n'), 'utf-8');
   return filename;

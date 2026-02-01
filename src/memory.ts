@@ -29,6 +29,12 @@ export const addMessages = async (messages: AIMessage[]) => {
   await db.write();
 };
 
+export const resetMessages = async () => {
+  const db = await getDb();
+  db.data.messages = [];
+  await db.write();
+};
+
 export const getMessages = async (limit?: number) => {
   const db = await getDb();
   const all = db.data.messages;
