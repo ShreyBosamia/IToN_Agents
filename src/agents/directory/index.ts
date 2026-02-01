@@ -1,12 +1,14 @@
+import { feedingIllinoisCrawler } from './feedingIllinoisCrawler';
 import { oregonFoodFinderCrawler } from './oregonFoodFinderCrawler';
+
 import type {
-  PipelineContext,
   CrawlOptions,
   DirectoryCrawlResult,
+  PipelineContext,
   StatewideDirectoryCrawler,
 } from './types';
 
-const crawlers: StatewideDirectoryCrawler[] = [oregonFoodFinderCrawler];
+const crawlers: StatewideDirectoryCrawler[] = [oregonFoodFinderCrawler, feedingIllinoisCrawler];
 
 export async function runStatewideCrawler(
   ctx: PipelineContext,
