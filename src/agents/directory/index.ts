@@ -17,4 +17,3 @@ export async function runStatewideCrawler(
     throw new Error(`No statewide crawler supports state=${ctx.state}, category=${ctx.category}`);
   return crawler.crawl(ctx, opts);
 }
-
