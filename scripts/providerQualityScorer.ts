@@ -14,10 +14,16 @@ const URLS = [
     "website5.com",
     "website6.com",
 ];
+const websitePath = "websites.txt";
+async function isDirectory(url: string) {
+    
+    return
+}
 
 async function main() {
     const passRate = parseFloat("50.0");
     const decision = await decidePass(passRate);
+    const websiteList = websitePath;
     console.log(decision);
     await iterateSites(URLS);
 }
