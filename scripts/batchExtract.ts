@@ -11,7 +11,7 @@ async function main() {
   // Resolve and read websites.txt
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  const sitesPath = path.resolve(__dirname, '../websites.txt');
+  const sitesPath = path.resolve(__dirname, '../data/websites.txt');
   const raw = await readFile(sitesPath, 'utf-8');
   const urls = raw
     .split(/\r?\n/)
@@ -23,7 +23,7 @@ async function main() {
   const targets = urls.slice(0, MAX);
 
   if (!targets.length) {
-    console.error('No website URLs found in websites.txt.');
+    console.error('No website URLs found in data/websites.txt.');
     process.exit(1);
   }
 

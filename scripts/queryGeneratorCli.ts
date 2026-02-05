@@ -1,4 +1,7 @@
-import { runQueryGenerator, saveQueriesToFile } from '../queryGeneratorAgents';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { runQueryGenerator, saveQueriesToFile } from '../src/agents/queryGenerator.js';
 
 async function main() {
   const [city, state, category] = process.argv.slice(2);
@@ -10,7 +13,10 @@ async function main() {
 
   try {
     const queries = await runQueryGenerator(city, state, category);
-    const file = saveQueriesToFile(city, category, queries);
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const outputDir = path.resolve(__dirname, '../examples');
+    const file = saveQueriesToFile(city, category, queries, outputDir);
 
     console.log('Generated queries:\n');
     console.log(queries.join('\n'));

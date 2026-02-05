@@ -1,6 +1,5 @@
 import { feedingIllinoisCrawler } from './feedingIllinoisCrawler';
 import { oregonFoodFinderCrawler } from './oregonFoodFinderCrawler';
-
 import type {
   CrawlOptions,
   DirectoryCrawlResult,
