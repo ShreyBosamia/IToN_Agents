@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-async function getLastedModified(url: string): Promise<string | null> {
+async function getLastModified(url: string): Promise<string | null> {
   try {
     let res = await fetch(url, {
       method: 'HEAD',
@@ -33,7 +33,7 @@ async function run() {
     .filter(Boolean);
 
   for (const url of urls) {
-    const lastMod = await getLastedModified(url);
+    const lastMod = await getLastModified(url);
     console.log(`${url} -> ${lastMod}`);
   }
 }
