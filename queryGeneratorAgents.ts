@@ -20,7 +20,7 @@ import { openai } from './src/ai';
 const systemPrompt = `
 You are a query generator for a web-search pipeline that finds local help resources.
 
-Input: city, state, and category (like "FOOD_BANK", "SHELTER", "DRUG_ASSISTANCE", "ABUSE_SUPPORT").
+Input: city, state, category, and optional population or attribute filters.
 
 Output: exactly 10 search queries, each on its own line, no numbering, no extra text.
 
@@ -29,7 +29,18 @@ Constraints and style:
 - Prefer .org, .gov, and .edu domains using site: filters when helpful.
 - Use both the city and state in most queries.
 - Use a mix of phrasing and related synonyms for the category.
-- Do NOT explain what you are doing. Do NOT add headings or commentary.
+- When filters are provided, incorporate them naturally into queries.
+- Even if filters are NOT provided, generate some queries targeting sub-populations such as:
+  - women
+  - families
+  - youth or teens
+  - veterans
+  - LGBTQ+ individuals
+  - people with disabilities
+  - survivors of abuse or domestic violence
+  - pet owners
+- Vary urgency wording (emergency, overnight, transitional housing, etc.)
+- Do NOT explain what you are doing.
 - Output MUST be plain text with 10 lines, one query per line.
 `.trim();
 
@@ -37,20 +48,21 @@ Constraints and style:
 const fewShotUser = `
 city: Salem
 state: OR
-category: FOOD_BANK
+category: SHELTER
+filters: women, children
 `.trim();
 
 const fewShotAssistant = `
-Salem OR food bank site:.org OR site:.gov
-food pantry "Salem, Oregon"
-free food boxes Salem OR
-emergency food assistance Marion County Oregon
-church food pantry Salem OR
-mobile food bank "Salem OR"
-community meal program "Salem Oregon"
-SNAP food resources Salem OR
-free groceries for families Salem OR
-low income food assistance Marion County OR
+women and children shelter Salem OR site:.org
+family homeless shelter "Salem Oregon"
+domestic violence safe shelter Marion County OR
+emergency family housing Salem OR
+women transitional housing Salem Oregon
+overnight shelter for mothers with children Salem OR
+safe house for abuse survivors Salem OR site:.gov
+family emergency shelter Marion County Oregon
+temporary housing for single mothers Salem OR
+youth and family shelter Salem OR
 `.trim();
 
 /**
@@ -59,11 +71,17 @@ low income food assistance Marion County OR
  * - user/assistant: few-shot example
  * - final user: real city/state/category
  */
-function buildMessages(city: string, state: string, category: string) {
+function buildMessages(city: string, state: string, category: string, filters?: string[]) {
+  const filterText =
+    filters && filters.length > 0
+      ? `filters: ${filters.join(', ')}`
+      : 'filters: none';
+
   const realUser = `
 city: ${city}
 state: ${state}
 category: ${category}
+${filterText}
   `.trim();
 
   return [
@@ -115,8 +133,8 @@ function normalizeQueries(raw: string): string[] {
 /**
  * Core function: generate exactly 10 search queries for (city, state, category).
  */
-async function runQueryGenerator(city: string, state: string, category: string): Promise<string[]> {
-  const messages = buildMessages(city, state, category);
+async function runQueryGenerator(city: string, state: string, category: string, filters?: string[]): Promise<string[]> {
+  const messages = buildMessages(city, state, category, filters);
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
