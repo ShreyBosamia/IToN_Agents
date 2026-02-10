@@ -158,7 +158,49 @@ This will:
 ```text
 <City>_<CATEGORY>_pipeline.json
 ```
+### 4. HTTP pipeline server (review + approval workflow)
 
+If you want to run the pipeline on a server and fetch the output over HTTP (e.g., to power a staff review UI), you can run the built-in HTTP server:
+
+```bash
+npm run server
+```
+
+By default it listens on `PORT=3000`. The server exposes a minimal job-based API:
+
+- `POST /jobs` — start a pipeline run
+- `GET /jobs/:id` — fetch job status/output
+- `POST /jobs/:id/approve` — mark output approved
+- `POST /jobs/:id/deny` — mark output denied
+- `GET /health` — health check
+
+Example request:
+
+```bash
+curl -X POST http://localhost:3000/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "city": "Salem",
+    "state": "OR",
+    "category": "FOOD_BANK",
+    "perQuery": 3,
+    "maxUrls": 10
+  }'
+```
+
+The response includes a job `id`, which you can poll:
+
+```bash
+curl http://localhost:3000/jobs/<JOB_ID>
+```
+
+When the status becomes `ready_for_review`, the `output` field contains the pipeline output (including the `sanity` array). Staff can then approve or deny:
+
+```bash
+curl -X POST http://localhost:3000/jobs/<JOB_ID>/approve \
+  -H "Content-Type: application/json" \
+  -d '{"reviewer": "staff@example.com"}'
+```
 ---
 
 ## What it does

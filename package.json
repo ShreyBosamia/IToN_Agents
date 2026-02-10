@@ -8,6 +8,7 @@
     "demo2": "tsx scripts/batchExtract.ts",
     "query": "tsx scripts/queryGeneratorCli.ts",
     "pipeline": "tsx scripts/pipeline.ts",
+    "server": "tsx scripts/server.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
