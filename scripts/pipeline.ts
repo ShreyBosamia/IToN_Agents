@@ -18,15 +18,13 @@ async function main() {
     category,
     perQuery,
     maxUrls,
-    
-});
+  });
 
   console.log(`Saved queries to ${result.output.query_file}`);
   console.log(`Saved pipeline output to ${result.outputFile}`);
   console.log(`Saved sanity output to ${result.sanityFile}`);
   console.log(JSON.stringify(result.output.sanity, null, 2));
   console.log(`Scraped ${result.output.urls.length} URLs`);
-
 }
 
 main().catch((err) => {

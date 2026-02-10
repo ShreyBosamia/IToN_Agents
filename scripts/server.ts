@@ -1,8 +1,8 @@
 import 'dotenv/config';
+import { randomUUID } from 'node:crypto';
 import http from 'node:http';
 import { URL } from 'node:url';
 
-import { randomUUID } from 'node:crypto';
 import { runPipeline, type PipelineOutput } from '../pipeline/runPipeline.ts';
 
 type JobStatus = 'queued' | 'running' | 'ready_for_review' | 'approved' | 'denied' | 'failed';
@@ -121,7 +121,9 @@ const server = http.createServer(async (req, res) => {
           ? body.perQuery
           : undefined;
       const maxUrls =
-        typeof body.maxUrls === 'number' && Number.isFinite(body.maxUrls) ? body.maxUrls : undefined;
+        typeof body.maxUrls === 'number' && Number.isFinite(body.maxUrls)
+          ? body.maxUrls
+          : undefined;
 
       const job: PipelineJob = {
         id: randomUUID(),

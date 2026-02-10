@@ -686,7 +686,10 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRun
     extracted.push({ url, result: fallbackDoc, method: 'fallback' });
   }
 
-  const sanityFile = path.join(resolvedOutputDir, `${safeName(city)}_${safeName(category)}_sanity.json`);
+  const sanityFile = path.join(
+    resolvedOutputDir,
+    `${safeName(city)}_${safeName(category)}_sanity.json`
+  );
   await writeFile(sanityFile, JSON.stringify(sanityDocs, null, 2), 'utf-8');
 
   const output: PipelineOutput = {

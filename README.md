@@ -158,6 +158,7 @@ This will:
 ```text
 <City>_<CATEGORY>_pipeline.json
 ```
+
 ### 4. HTTP pipeline server (review + approval workflow)
 
 If you want to run the pipeline on a server and fetch the output over HTTP (e.g., to power a staff review UI), you can run the built-in HTTP server:
@@ -201,6 +202,7 @@ curl -X POST http://localhost:3000/jobs/<JOB_ID>/approve \
   -H "Content-Type: application/json" \
   -d '{"reviewer": "staff@example.com"}'
 ```
+
 ---
 
 ## What it does
