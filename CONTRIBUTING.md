@@ -1,7 +1,5 @@
 # Contributing
 
-Thanks for contributing! This repo is a TypeScript/Node.js project using ESLint, Prettier, and Vitest.
-
 ## Prerequisites
 
 - Node.js 18+ (Node 20 recommended)
