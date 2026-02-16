@@ -17,11 +17,11 @@ async function getLastedModified(url: string): Promise<string | null> {
       });
     }
 
-    if(res.headers.get('Last-Modified') == null) {
-      appendFile(nonFeasibleWebsites, (url + "\n"));
+    if (res.headers.get('Last-Modified') == null) {
+      appendFile(nonFeasibleWebsites, url + '\n');
     }
-    if(res.headers.get('Last-Modified') != null) {
-      appendFile(feasibleWebsites, (url + "\n"));
+    if (res.headers.get('Last-Modified') != null) {
+      appendFile(feasibleWebsites, url + '\n');
     }
     return res.headers.get('Last-Modified');
   } catch (err) {
