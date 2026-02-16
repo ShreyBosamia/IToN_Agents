@@ -10,6 +10,7 @@
     "query": "tsx scripts/queryGeneratorCli.ts",
     "provScorer": "tsx scripts/providerQualityScorer.ts",
     "pipeline": "tsx scripts/pipeline.ts",
+    "server": "tsx scripts/server.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
