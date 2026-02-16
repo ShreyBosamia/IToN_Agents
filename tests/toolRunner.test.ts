@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import { runTool } from '../src/toolRunner';
-import type { RegisteredTool } from '../types';
+import type { RegisteredTool } from '../src/types';
 
 const echoTool: RegisteredTool = {
   definition: {

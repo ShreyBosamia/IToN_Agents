@@ -1,9 +1,8 @@
-import { readFile } from 'fs/promises';
-import { appendFile } from 'fs/promises';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-async function getLastedModified(url: string): Promise<string | null> {
-  const nonFeasibleWebsites = 'nonfeasible.txt';
-  const feasibleWebsites = 'feasible.txt';
+async function getLastModified(url: string): Promise<string | null> {
   try {
     let res = await fetch(url, {
       method: 'HEAD',
@@ -17,27 +16,24 @@ async function getLastedModified(url: string): Promise<string | null> {
       });
     }
 
-    if (res.headers.get('Last-Modified') == null) {
-      appendFile(nonFeasibleWebsites, url + '\n');
-    }
-    if (res.headers.get('Last-Modified') != null) {
-      appendFile(feasibleWebsites, url + '\n');
-    }
     return res.headers.get('Last-Modified');
-  } catch (err) {
+  } catch {
     return null;
   }
 }
 
 async function run() {
-  const text = await readFile('websites.txt', 'utf8');
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const sitesPath = path.resolve(__dirname, '../data/websites.txt');
+  const text = await readFile(sitesPath, 'utf8');
   const urls = text
     .split('\n')
     .map((x) => x.trim())
     .filter(Boolean);
 
   for (const url of urls) {
-    const lastMod = await getLastedModified(url);
+    const lastMod = await getLastModified(url);
     console.log(`${url} -> ${lastMod}`);
   }
 }
