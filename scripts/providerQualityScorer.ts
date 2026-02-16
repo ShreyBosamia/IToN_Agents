@@ -31,7 +31,7 @@ type Result = {
   notes: string[];
 };
 
-function normalizeUrl(raw: string): string | null {
+export function normalizeUrl(raw: string): string | null {
   const s = raw.trim();
   if (!s || s.startsWith('#')) return null;
 

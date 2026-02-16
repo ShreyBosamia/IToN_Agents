@@ -9,6 +9,9 @@ import { resetMessages } from '../src/memory.js';
 import { SYSTEM_PROMPT } from '../src/systemPrompt.js';
 import { tools } from '../src/tools/index.js';
 
+import { normalizeWhitespace, dedupeStrings } from '../src/normalizers/pipelineUtils.js';
+
+
 type SanityBlock = {
   _type: 'block';
   children: Array<{ _type: 'span'; text: string }>;
@@ -66,10 +69,6 @@ function safeName(input: string): string {
   return input.trim().replace(/\s+/g, '_');
 }
 
-function normalizeWhitespace(text: string): string {
-  return text.replace(/\s+/g, ' ').trim();
-}
-
 function isNoisyLine(line: string): boolean {
   const lower = line.toLowerCase();
   if (lower.includes('sqs-') || lower.includes('squarespace')) return true;
@@ -99,17 +98,6 @@ function extractDescriptionFallback(text: string): string {
   return cleaned.slice(0, 240);
 }
 
-function dedupeStrings(values: string[]): string[] {
-  const out: string[] = [];
-  const seen = new Set<string>();
-  for (const value of values) {
-    const normalized = normalizeWhitespace(value);
-    if (!normalized || seen.has(normalized)) continue;
-    seen.add(normalized);
-    out.push(normalized);
-  }
-  return out;
-}
 
 function toOriginUrl(raw: string): string {
   if (!raw) return '';
