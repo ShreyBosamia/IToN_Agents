@@ -1,8 +1,8 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 
-const WEBSITE_PATH = 'websites.txt';
+const WEBSITE_PATH = './websites.txt';
 const PASS_SCORE = 50;
-const MAX_URLS = 5;
+const MAX_URLS = 504;
 
 // weights sum to 100
 const WEIGHTS = {
@@ -76,10 +76,7 @@ function htmlToText(html: string): string {
     .trim();
 }
 
-/**
- * 1) Government sources
- * Basic: if page has .gov links or words like "licensed" / "department".
- */
+//Government source
 function checkGovernmentSources(html: string, text: string): { points: number; note: string } {
   const t = text.toLowerCase();
 
@@ -87,11 +84,6 @@ function checkGovernmentSources(html: string, text: string): { points: number; n
     /\bhttps?:\/\/[^\s"'<>]+\.gov\b/i.test(html) || /\b\.state\.[a-z]{2}\.us\b/i.test(html);
   const govWords = [
     'government',
-    'department',
-    'ministry',
-    'licensed',
-    'licensing',
-    'public health',
   ];
   const wordHit = govWords.some((w) => t.includes(w));
 
@@ -105,10 +97,7 @@ function checkGovernmentSources(html: string, text: string): { points: number; n
   return { points: 0, note: 'No government source signals.' };
 }
 
-/**
- * 2) Clear contact info
- * Basic: email OR phone OR a “contact” page link/word.
- */
+//Clear contact info
 function checkClearContactInfo(html: string, text: string): { points: number; note: string } {
   const email = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(text);
   const phone = /(\+?\d{1,2}[\s.-]?)?(\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}/.test(text);
@@ -127,10 +116,7 @@ function checkClearContactInfo(html: string, text: string): { points: number; no
   return { points: 0, note: 'No clear contact info found.' };
 }
 
-/**
- * 3) Evidence of service
- * Basic: service-related words exist.
- */
+//Evidence of service
 function checkEvidenceOfService(text: string): { points: number; note: string } {
   const t = text.toLowerCase();
   const phrases = [
@@ -162,10 +148,7 @@ function checkEvidenceOfService(text: string): { points: number; note: string } 
   return { points: 0, note: 'No obvious evidence of services.' };
 }
 
-/**
- * 4) Freshness signal
- * Basic: "updated", "posted", "published" or a date-looking string.
- */
+//Freshness signals
 function checkFreshnessSignal(text: string): { points: number; note: string } {
   const t = text.toLowerCase();
 
@@ -202,10 +185,7 @@ function checkFreshnessSignal(text: string): { points: number; note: string } {
   return { points: 0, note: 'No freshness signal found.' };
 }
 
-/**
- * 5) Non-directory site
- * Basic: penalize if it looks like a directory/listing.
- */
+//Check for non directrory
 function checkNonDirectorySite(text: string): { points: number; note: string } {
   const t = text.toLowerCase();
 
@@ -327,19 +307,53 @@ async function main() {
     results.push(await scoreSite(url, seenTexts));
   }
 
-  console.log('\nResults');
-  console.log('='.repeat(60));
+  // Write passing URLs to file
+  const passingUrls = results
+    .filter((r) => r.pass)
+    .map((r) => r.url)
+    .join('\n');
 
-  for (const r of results) {
-    console.log(`\n${r.url}`);
-    console.log(`Score: ${r.score}/100  Pass: ${r.pass ? 'YES' : 'NO'}`);
-    console.log('Breakdown:', r.breakdown);
-    console.log('Notes:');
-    for (const n of r.notes) console.log(`  - ${n}`);
-  }
+  await writeFile('./passingWebsites.txt', passingUrls, 'utf8');
 
-  const passed = results.filter((r) => r.pass).length;
-  console.log(`\nPassed: ${passed}/${results.length} (pass >= ${PASS_SCORE})`);
+  console.log(`\nPassing websites with at least score of ${PASS_SCORE} written to passingWebsites.txt`);
+
+    // Write non-passing URLs to file
+  const failingUrls = results
+    .filter((r) => !r.pass)
+    .map((r) => r.url)
+    .join('\n');
+
+  await writeFile('./failingWebsites.txt', failingUrls, 'utf8');
+
+  console.log(`Non-passing websites (score < ${PASS_SCORE}) written to failingWebsites.txt`);
+
+
+  // Write full results report to file
+  const resultsText = results
+    .map((r) => {
+      const breakdownLines = Object.entries(r.breakdown)
+        .map(([k, v]) => `  ${k}: ${v}`)
+        .join('\n');
+
+      const notesLines = r.notes.map((n) => `  - ${n}`).join('\n');
+
+      return [
+        r.url,
+        `Score: ${r.score}/100  Pass: ${r.pass ? 'YES' : 'NO'}`,
+        'Breakdown:',
+        breakdownLines,
+        'Notes:',
+        notesLines,
+        ''.padEnd(60, '='),
+        '',
+      ].join('\n');
+    })
+    .join('\n');
+
+  await writeFile('./provScorerResults.txt', resultsText, 'utf8');
+
+  console.log('Results written to provScorerResults.txt');
+
 }
 
 main().catch((e) => {
