@@ -82,9 +82,7 @@ function checkGovernmentSources(html: string, text: string): { points: number; n
 
   const hasGovLink =
     /\bhttps?:\/\/[^\s"'<>]+\.gov\b/i.test(html) || /\b\.state\.[a-z]{2}\.us\b/i.test(html);
-  const govWords = [
-    'government',
-  ];
+  const govWords = ['government'];
   const wordHit = govWords.some((w) => t.includes(w));
 
   if (hasGovLink)
@@ -315,9 +313,11 @@ async function main() {
 
   await writeFile('./passingWebsites.txt', passingUrls, 'utf8');
 
-  console.log(`\nPassing websites with at least score of ${PASS_SCORE} written to passingWebsites.txt`);
+  console.log(
+    `\nPassing websites with at least score of ${PASS_SCORE} written to passingWebsites.txt`
+  );
 
-    // Write non-passing URLs to file
+  // Write non-passing URLs to file
   const failingUrls = results
     .filter((r) => !r.pass)
     .map((r) => r.url)
@@ -326,7 +326,6 @@ async function main() {
   await writeFile('./failingWebsites.txt', failingUrls, 'utf8');
 
   console.log(`Non-passing websites (score < ${PASS_SCORE}) written to failingWebsites.txt`);
-
 
   // Write full results report to file
   const resultsText = results
@@ -353,7 +352,6 @@ async function main() {
   await writeFile('./provScorerResults.txt', resultsText, 'utf8');
 
   console.log('Results written to provScorerResults.txt');
-
 }
 
 main().catch((e) => {
