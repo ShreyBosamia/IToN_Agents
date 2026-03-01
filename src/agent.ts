@@ -1,8 +1,8 @@
-import { runLLM } from './llm';
-import { addMessages, getMessages } from './memory';
-import { runTool } from './toolRunner';
-import type { AIMessage, RegisteredTool } from './types';
-import { logMessage, showLoader } from './ui';
+import { runLLM } from './llm.ts';
+import { addMessages, getMessages } from './memory.ts';
+import { runTool } from './toolRunner.ts';
+import type { AIMessage, RegisteredTool } from './types.ts';
+import { logMessage, showLoader } from './ui.ts';
 
 type AssistantMessage = Extract<AIMessage, { role: 'assistant' }>;
 

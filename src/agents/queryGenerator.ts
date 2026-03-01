@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { openai } from '../ai';
+import { openai } from '../ai.ts';
 
 /**
  * Query Generator Agent
@@ -232,6 +232,12 @@ Use city/state/category exactly as provided.`;
  * Write queries to a text file named "<city>_<category>_queries.txt".
  */
 function saveQueriesToFile(city: string, category: string, queries: string[], outputDir?: string) {
+  if (!city || !category) {
+    throw new Error(
+      `saveQueriesToFile: missing city/category (city=${city}, category=${category})`
+    );
+  }
+  
   const safeCity = city.replace(/\s+/g, '_');
   const safeCategory = category.replace(/\s+/g, '_');
   const filename = `${safeCity}_${safeCategory}_queries.txt`;

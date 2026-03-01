@@ -7,6 +7,7 @@ function App() {
   const [count, setCount] = useState(0);
   const [userCity, setUserCity] = useState('');
   const [userState, setUserState] = useState('');
+  const [userCategory, setUserCategory] = useState('');
   const [maxQueries, setMaxQueries] = useState(null);
   const [maxUrls, setMaxUrls] = useState(null);
 
@@ -16,6 +17,7 @@ function App() {
     const payload = {
       city: userCity.trim(),
       state: userState.trim(),
+      category: userCategory.trim(),
       maxQueries: maxQueries === '' || maxQueries == null ? null : Number(maxQueries),
       maxUrls: maxUrls === '' || maxUrls == null ? null : Number(maxUrls),
     };
@@ -51,6 +53,12 @@ function App() {
             placeholder="State"
             value={userState}
             onChange={(e) => setUserState(e.target.value)}
+          />
+          <input
+            className="border-black outline-1 mx-10"
+            placeholder="Category"
+            value={userCategory}
+            onChange={(e) => setUserCategory(e.target.value)}
           />
           <input
             className="border-black outline-1 mx-10"
