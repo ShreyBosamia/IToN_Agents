@@ -12,6 +12,30 @@ function App() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+
+    const payload = {
+      city: userCity.trim(),
+      state: userState.trim(),
+      maxQueries: maxQueries === "" || maxQueries == null ? null : Number(maxQueries),
+      maxUrls: maxUrls === "" || maxUrls == null ? null : Number(maxUrls),
+    };
+
+    try {
+      const response = await fetch("http://localhost:4000/api/pipelines", {
+        method: "POST",
+        headers: {"Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if(!response.ok) throw new Error(data?.error || "Request failed");
+
+      console.log("Stored pipeline id:", data.id);
+      
+    } catch (err) {
+      console.error(err);
+    }
+
   }
   return (
     <>
