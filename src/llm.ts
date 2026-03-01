@@ -1,7 +1,7 @@
 import type OpenAI from 'openai';
 
-import { openai } from './ai';
-import { SYSTEM_PROMPT } from './systemPrompt';
+import { openai } from './ai.ts';
+import { SYSTEM_PROMPT } from './systemPrompt.ts';
 import type { AIMessage } from './types';
 
 export const runLLM = async ({

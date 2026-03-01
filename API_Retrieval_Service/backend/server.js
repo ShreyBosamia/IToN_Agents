@@ -1,7 +1,9 @@
-import { runPipeline } from '../../pipeline/runPipeline.ts';
+/* eslint-env node */
+import './env.js';
+import cors from 'cors';
+import express from 'express';
 
-const express = require('express');
-const cors = require('cors');
+import { runPipeline } from '../../pipeline/runPipeline.ts';
 
 const app = express();
 app.use(cors());
@@ -12,7 +14,7 @@ let pipelines = [];
 //Retrieve REST API requests (Post)
 app.post('/api/pipelines', async (req, res) => {
   try {
-    const { city, state, maxQueries, maxUrls } = req.body || {};
+    const { city, state, category, maxQueries, maxUrls } = req.body || {};
 
     // basic validation
     if (!city || !state) {
@@ -33,6 +35,7 @@ app.post('/api/pipelines', async (req, res) => {
     const output = await runPipeline({
       city: String(city).trim(),
       state: String(state).trim(),
+      category: String(category).trim(),
       maxQueries: mq,
       maxUrls: mu,
     });
