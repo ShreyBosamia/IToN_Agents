@@ -1,7 +1,9 @@
-import { runPipeline } from '../../pipeline/runPipeline.ts';
+/* eslint-env node */
 
-const express = require('express');
-const cors = require('cors');
+import cors from 'cors';
+import express from 'express';
+
+import { runPipeline } from '../../pipeline/runPipeline.ts';
 
 const app = express();
 app.use(cors());

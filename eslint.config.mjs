@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import pluginImport from 'eslint-plugin-import';
+import globals from 'globals';
 import ts from 'typescript-eslint';
 
 export default [
@@ -27,6 +28,17 @@ export default [
           alwaysTryTypes: true,
         },
       },
+    },
+  },
+  {
+    files: ['API_Retrieval_Service/backend/**/*.{js,ts}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-console': 'off',
     },
   },
 ];
