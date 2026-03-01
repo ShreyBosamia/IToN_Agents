@@ -237,7 +237,7 @@ function saveQueriesToFile(city: string, category: string, queries: string[], ou
       `saveQueriesToFile: missing city/category (city=${city}, category=${category})`
     );
   }
-  
+
   const safeCity = city.replace(/\s+/g, '_');
   const safeCategory = category.replace(/\s+/g, '_');
   const filename = `${safeCity}_${safeCategory}_queries.txt`;
