@@ -39,42 +39,45 @@ function App() {
   }
   return (
     <>
-      <div>
-        <h2>Pipeline request</h2>
+      <div className="max-w-md mx-auto px-6 flex flex-col gap-6">
+        <h1 className="text-2xl font-bold">Pipeline request</h1>
         <form onSubmit={handleSubmit}>
-          <input
-            className="border-black outline-1 mx-10"
-            placeholder="City"
-            value={userCity}
-            onChange={(e) => setUserCity(e.target.value)}
-          />
-          <input
-            className="border-black outline-1 mx-10"
-            placeholder="State"
-            value={userState}
-            onChange={(e) => setUserState(e.target.value)}
-          />
-          <input
-            className="border-black outline-1 mx-10"
-            placeholder="Category"
-            value={userCategory}
-            onChange={(e) => setUserCategory(e.target.value)}
-          />
-          <input
-            className="border-black outline-1 mx-10"
-            placeholder="max queries"
-            value={maxQueries}
-            onChange={(e) => setMaxQueries(e.target.value)}
-          />
-          <input
-            className="border-black outline-1 mx-10"
-            placeholder="max URLs"
-            value={maxUrls}
-            onChange={(e) => setMaxUrls(e.target.value)}
-          />
-          <button type="submit">Submit</button>
-        </form>
-      </div>
+            <div className="flex flex-col gap-4">
+              <input  
+                className="w-full text-sm rounded-lg focus:border-blue-500 focus:ring-2 px-4 py-2  border border-gray-300 outline-1"
+                placeholder="City"
+                value={userCity}
+                onChange={(e) => setUserCity(e.target.value)}
+              />
+              <input
+                className="w-full text-sm rounded-lg focus:border-blue-500 focus:ring-2 px-4 py-2  border border-gray-300 outline-1"
+                placeholder="State"
+                value={userState}
+                onChange={(e) => setUserState(e.target.value)}
+              />
+              <input
+                className="w-full text-sm rounded-lg focus:border-blue-500 focus:ring-2 px-4 py-2  border border-gray-300 outline-1"
+                placeholder="Category"
+                value={userCategory}
+                onChange={(e) => setUserCategory(e.target.value)}
+              />
+              <input
+                className="w-full text-sm rounded-lg focus:border-blue-500 focus:ring-2 px-4 py-2 border border-gray-300 outline-1"
+                placeholder="Max queries"
+                value={maxQueries}
+                onChange={(e) => setMaxQueries(e.target.value)}
+              />
+              <input
+                className="w-full text-sm rounded-lg focus:border-blue-500 focus:ring-2 px-4 py-2 border border-gray-300 outline-1"
+                placeholder="Max URLs"
+                value={maxUrls}
+                onChange={(e) => setMaxUrls(e.target.value)}
+              />
+              <button className="w-full cursor-pointer bg-[#97BD82] text-center rounded-lg focus:border-blue-500 focus:ring-2 px-4 py-2 border border-gray-300 outline-1" type="submit">Submit</button>
+            </div>
+
+          </form>
+        </div>
     </>
   );
 }
