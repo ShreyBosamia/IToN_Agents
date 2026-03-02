@@ -17,7 +17,10 @@
     "test": "vitest run --reporter=dot",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
-    "ci": "npm run lint && npm run format:check && npm run test"
+    "ci": "npm run lint && npm run format:check && npm run test",
+    "source:accessfood": "tsx scripts/sources/totalapi.ts",
+    "source:totalapi": "tsx scripts/sources/totalapi.ts",
+    "source:foodbankofrookie": "tsx scripts/sources/foodbankofrookieToSanity.ts"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
