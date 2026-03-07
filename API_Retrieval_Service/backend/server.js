@@ -1,4 +1,7 @@
 /* eslint-env node */
+
+//Run npx tsx server.js
+
 import './env.js';
 import cors from 'cors';
 import express from 'express';
