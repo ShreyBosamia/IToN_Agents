@@ -79,7 +79,7 @@ app.post("/api/pipelines", (req, res) => {
     inputs: {
       city: String(city).trim(),
       state: String(state).trim(),
-      category: String(category). trim(),
+      category: String(category).trim(),
       maxQueries: mq,
       maxUrls: mu,
     },
