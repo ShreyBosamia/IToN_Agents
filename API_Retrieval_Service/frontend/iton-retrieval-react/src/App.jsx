@@ -21,7 +21,9 @@ function prettyJson(value) {
 }
 
 function StatusBadge({ status }) {
-  return <span className={`status-badge status-${status || 'unknown'}`}>{status || 'unknown'}</span>;
+  return (
+    <span className={`status-badge status-${status || 'unknown'}`}>{status || 'unknown'}</span>
+  );
 }
 
 function DetailRow({ label, value }) {
@@ -43,13 +45,19 @@ function JobCard({ job, isActive, onOpen }) {
       <div className="job-card-header">
         <div>
           <h3>{job.inputs?.category || 'Uncategorized job'}</h3>
-          <p>{job.inputs?.city}, {job.inputs?.state}</p>
+          <p>
+            {job.inputs?.city}, {job.inputs?.state}
+          </p>
         </div>
         <StatusBadge status={job.status} />
       </div>
       <div className="job-meta-grid">
-        <span><strong>Job ID:</strong> {job.id}</span>
-        <span><strong>Created:</strong> {formatDate(job.createdAt)}</span>
+        <span>
+          <strong>Job ID:</strong> {job.id}
+        </span>
+        <span>
+          <strong>Created:</strong> {formatDate(job.createdAt)}
+        </span>
       </div>
     </button>
   );
@@ -103,7 +111,10 @@ function App() {
       if (!response.ok) throw new Error(data?.error || 'Failed to fetch job');
       setSelectedJob(data);
     } catch (error) {
-      setSelectedJob({ id: jobId, error: { message: error.message || 'Failed to load job detail' } });
+      setSelectedJob({
+        id: jobId,
+        error: { message: error.message || 'Failed to load job detail' },
+      });
     } finally {
       setLoadingJobDetail(false);
     }
@@ -186,7 +197,12 @@ function App() {
         <form className="pipeline-form" onSubmit={handleSubmit}>
           <label>
             <span>City</span>
-            <input name="city" value={form.city} onChange={handleInputChange} placeholder="Corvallis" />
+            <input
+              name="city"
+              value={form.city}
+              onChange={handleInputChange}
+              placeholder="Corvallis"
+            />
           </label>
           <label>
             <span>State</span>
@@ -194,7 +210,12 @@ function App() {
           </label>
           <label>
             <span>Category</span>
-            <input name="category" value={form.category} onChange={handleInputChange} placeholder="FOOD_BANK" />
+            <input
+              name="category"
+              value={form.category}
+              onChange={handleInputChange}
+              placeholder="FOOD_BANK"
+            />
           </label>
           <label>
             <span>Per Query</span>
@@ -262,8 +283,12 @@ function App() {
             {selectedJob?.status ? <StatusBadge status={selectedJob.status} /> : null}
           </div>
 
-          {!selectedJobId ? <p className="muted-text">Choose a job card to inspect its inputs and outputs.</p> : null}
-          {selectedJobId && loadingJobDetail ? <p className="muted-text">Loading job detail…</p> : null}
+          {!selectedJobId ? (
+            <p className="muted-text">Choose a job card to inspect its inputs and outputs.</p>
+          ) : null}
+          {selectedJobId && loadingJobDetail ? (
+            <p className="muted-text">Loading job detail…</p>
+          ) : null}
 
           {selectedJob?.error?.message && selectedJob?.status !== 'error' ? (
             <p className="error-text">{selectedJob.error.message}</p>

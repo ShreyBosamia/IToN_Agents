@@ -4,16 +4,7 @@
   "title": "PipelineJob",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "id",
-    "status",
-    "createdAt",
-    "inputs",
-    "startedAt",
-    "finishedAt",
-    "output",
-    "error"
-  ],
+  "required": ["id", "status", "createdAt", "inputs", "startedAt", "finishedAt", "output", "error"],
   "properties": {
     "id": {
       "type": "string",
