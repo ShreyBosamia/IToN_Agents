@@ -1,10 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-
 import { runAgent } from '../src/agent.ts';
 import { runQueryGenerator, saveQueriesToFile } from '../src/agents/queryGenerator.ts';
 import { runSearchAgent } from '../src/agents/searchAgent.ts';
-import { resetMessages } from '../src/memory.ts';
 import { SYSTEM_PROMPT } from '../src/systemPrompt.ts';
 import { tools } from '../src/tools/index.ts';
 
@@ -627,7 +625,6 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRun
   const extracted: Array<{ url: string; result: SanityDoc; method: 'agent' | 'fallback' }> = [];
 
   for (const url of urlsToScrape) {
-    await resetMessages();
     const agentHistory = await runAgent({
       userMessage: `${SYSTEM_PROMPT}\nCategory: ${category}\nURL: ${url}`,
       tools,
