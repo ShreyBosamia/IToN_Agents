@@ -1,5 +1,4 @@
 import { runLLM } from './llm.ts';
-import { addMessages, getMessages } from './memory.ts';
 import { runTool } from './toolRunner.ts';
 import type { AIMessage, RegisteredTool } from './types.ts';
 import { logMessage, showLoader } from './ui.ts';
@@ -15,7 +14,7 @@ export const runAgent = async ({
   tools: RegisteredTool[];
   quiet?: boolean;
 }) => {
-  await addMessages([{ role: 'user', content: userMessage }]);
+  const messages: AIMessage[] = [{ role: 'user', content: userMessage }];
   if (!quiet) logMessage({ role: 'user', content: userMessage });
 
   const loader = !quiet
@@ -29,9 +28,8 @@ export const runAgent = async ({
   let jsonRetryCount = 0;
 
   while (true) {
-    const history = await getMessages(20);
     const response = await runLLM({
-      messages: history,
+      messages,
       tools: tools.map((tool) => tool.definition),
     });
 
@@ -46,14 +44,28 @@ export const runAgent = async ({
       ...(toolCalls ? { tool_calls: toolCalls } : {}),
     };
 
-    await addMessages([assistantMessage]);
+    messages.push(assistantMessage);
 
     if (assistantMessage.tool_calls?.length) {
       if (!quiet) logMessage(assistantMessage);
 
       for (const toolCall of assistantMessage.tool_calls) {
-        const toolResponse = await runTool(toolCall, userMessage, tools);
-        await addMessages([{ role: 'tool', tool_call_id: toolCall.id, content: toolResponse }]);
+        let toolResponse: string;
+
+        try {
+          toolResponse = await runTool(toolCall, userMessage, tools);
+        } catch (error) {
+          toolResponse = JSON.stringify({
+            error: error instanceof Error ? error.message : String(error),
+            tool: toolCall.function.name,
+          });
+        }
+
+        messages.push({
+          role: 'tool',
+          tool_call_id: toolCall.id,
+          content: toolResponse,
+        });
       }
 
       continue;
@@ -88,13 +100,11 @@ export const runAgent = async ({
       if (!parsedOk && jsonRetryCount === 0) {
         // Ask the assistant to return only the JSON (one retry).
         jsonRetryCount += 1;
-        await addMessages([
-          {
-            role: 'user',
-            content:
-              'Please return ONLY valid JSON that matches the schema in the original prompt. Do not include any explanatory text or markdown. Respond with a single JSON object.',
-          },
-        ]);
+        messages.push({
+          role: 'user',
+          content:
+            'Please return ONLY valid JSON that matches the schema in the original prompt. Do not include any explanatory text or markdown. Respond with a single JSON object.',
+        });
         // Log the non-JSON message for debugging (only when not quiet) and retry
         if (!quiet) logMessage(assistantMessage);
         continue;
@@ -102,7 +112,7 @@ export const runAgent = async ({
 
       loader.stop();
       if (!quiet) logMessage(assistantMessage);
-      return getMessages(20);
+      return messages;
     }
   }
 };

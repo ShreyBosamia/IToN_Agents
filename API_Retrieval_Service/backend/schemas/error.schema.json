@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/error.schema.json",
+  "title": "ApiError",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["error"],
+  "properties": {
+    "error": {
+      "type": "string",
+      "description": "Human-readable error message."
+    }
+  },
+  "examples": [
+    { "error": "city and state are required" },
+    { "error": "maxQueries must be a non-negative number" },
+    { "error": "Job not found" }
+  ]
+}

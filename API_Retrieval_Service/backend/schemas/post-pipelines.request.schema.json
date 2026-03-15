@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/post-pipelines.schema.json",
+  "title": "PostPipelinesRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["city", "state"],
+  "properties": {
+    "city": {
+      "type": "string",
+      "minLength": 1,
+      "description": "City name. Required by server validation."
+    },
+    "state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "State/region code or name. Required by server validation."
+    },
+    "category": {
+      "type": "string",
+      "description": "Optional category. Server coerces to string; if omitted it becomes the literal string \"undefined\"."
+    },
+    "maxQueries": {
+      "description": "Optional. If provided, must be a non-negative number. Server converts to Number or null.",
+      "anyOf": [
+        { "type": "number", "minimum": 0 },
+        { "type": "integer", "minimum": 0 },
+        { "type": "string", "pattern": "^\\d+(\\.\\d+)?$" },
+        { "type": "null" }
+      ]
+    },
+    "maxUrls": {
+      "description": "Optional. If provided, must be a non-negative number. Server converts to Number or null.",
+      "anyOf": [
+        { "type": "number", "minimum": 0 },
+        { "type": "integer", "minimum": 0 },
+        { "type": "string", "pattern": "^\\d+(\\.\\d+)?$" },
+        { "type": "null" }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "city": "Austin",
+      "state": "TX",
+      "category": "Plumbers",
+      "maxQueries": 5,
+      "maxUrls": 20
+    },
+    {
+      "city": "Seattle",
+      "state": "WA",
+      "category": "Dentists"
+    }
+  ]
+}
