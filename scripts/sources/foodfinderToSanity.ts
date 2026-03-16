@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import { normalizeProviderOutputCollection } from "../../src/normalizers/providerOutputAdapter.ts";
 
 /**
  * FoodFinder API types (minimal)
@@ -174,8 +175,15 @@ async function main() {
   const outFile = path.join(outDir, `foodfinder_${categoryId}_sanity.json`);
   await writeFile(outFile, JSON.stringify(sanityDocs, null, 2), "utf-8");
 
+  const normalized = normalizeProviderOutputCollection(sanityDocs, {
+    sourceSystem: "foodfinder",
+  });
+  const normalizedOutFile = path.join(outDir, `foodfinder_${categoryId}_normalized.json`);
+  await writeFile(normalizedOutFile, JSON.stringify(normalized, null, 2), "utf-8");
+
   console.log(`Fetched locations: ${locations.length}`);
   console.log(`Wrote: ${outFile}`);
+  console.log(`Wrote: ${normalizedOutFile}`);
   console.log(`Sample:`, sanityDocs[0]);
 }
 

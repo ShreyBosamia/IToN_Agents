@@ -3,6 +3,7 @@ console.log("SCRIPT STARTED (totalapi/storepoint)");
 import fs from "node:fs";
 import path from "node:path";
 import fetch from "node-fetch";
+import { normalizeTotalApiProviderCollection } from "../../src/normalizers/totalapiResourceAdapter.ts";
 
 function normalizeWhitespace(text: unknown): string {
   return String(text ?? "").replace(/\s+/g, " ").trim();
@@ -334,7 +335,17 @@ async function main() {
   const outPath = path.join(outDir, `totalapi_${outputKey}_${serviceTypeId}_sanity.json`);
   fs.writeFileSync(outPath, JSON.stringify(deduped, null, 2), "utf-8");
 
+  const normalized = normalizeTotalApiProviderCollection(deduped, {
+    sourceSystem: isAccessFoodMode ? "totalapi-accessfood" : "totalapi-storepoint",
+  });
+  const normalizedOutPath = path.join(
+    outDir,
+    `totalapi_${outputKey}_${serviceTypeId}_normalized.json`
+  );
+  fs.writeFileSync(normalizedOutPath, JSON.stringify(normalized, null, 2), "utf-8");
+
   console.log(`Wrote: ${outPath}`);
+  console.log(`Wrote: ${normalizedOutPath}`);
   console.log("Sample:", deduped[0]);
 }
 

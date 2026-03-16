@@ -3,6 +3,7 @@ console.log("SCRIPT STARTED");
 import fs from "node:fs";
 import path from "node:path";
 import fetch from "node-fetch";
+import { normalizeProviderOutputCollection } from "../../src/normalizers/providerOutputAdapter.ts";
 
 type ArcGisFeature = {
   attributes: Record<string, any>;
@@ -141,7 +142,14 @@ async function main() {
   const outPath = path.join(outDir, `arcgis_${serviceTypeId}_sanity.json`);
   fs.writeFileSync(outPath, JSON.stringify(providers, null, 2), "utf-8");
 
+  const normalized = normalizeProviderOutputCollection(providers, {
+    sourceSystem: "capitalareafoodbank-arcgis",
+  });
+  const normalizedOutPath = path.join(outDir, `arcgis_${serviceTypeId}_normalized.json`);
+  fs.writeFileSync(normalizedOutPath, JSON.stringify(normalized, null, 2), "utf-8");
+
   console.log(`Wrote: ${outPath}`);
+  console.log(`Wrote: ${normalizedOutPath}`);
   console.log("Sample:", providers[0]);
 }
 
