@@ -5,7 +5,14 @@ import { URL } from 'node:url';
 
 import { runPipeline, type PipelineOutput } from '../pipeline/runPipeline.ts';
 
-type JobStatus = 'queued' | 'running' | 'ready_for_review' | 'approved' | 'denied' | 'failed';
+type JobStatus =
+  | 'queued'
+  | 'running'
+  | 'ready_for_review'
+  | 'approved'
+  | 'denied'
+  | 'failed'
+  | 'canceled';
 
 type PipelineJob = {
   id: string;
@@ -25,10 +32,16 @@ type PipelineJob = {
   error?: string;
   approvedAt?: string;
   deniedAt?: string;
+  canceledAt?: string;
   reviewer?: string;
 };
 
 const jobs = new Map<string, PipelineJob>();
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -37,6 +50,7 @@ function nowIso(): string {
 function sendJson(res: http.ServerResponse, status: number, payload: unknown): void {
   const body = JSON.stringify(payload, null, 2);
   res.writeHead(status, {
+    ...CORS_HEADERS,
     'Content-Type': 'application/json',
     'Content-Length': Buffer.byteLength(body),
   });
@@ -85,11 +99,13 @@ async function startPipeline(job: PipelineJob): Promise<void> {
       perQuery: job.input.perQuery,
       maxUrls: job.input.maxUrls,
     });
+    if (job.status === 'canceled') return;
     job.output = result.output;
     job.outputFile = result.outputFile;
     job.sanityFile = result.sanityFile;
     setJobStatus(job, 'ready_for_review');
   } catch (error) {
+    if (job.status === 'canceled') return;
     job.error = error instanceof Error ? error.message : String(error);
     setJobStatus(job, 'failed');
   }
@@ -99,8 +115,22 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
   const method = (req.method || 'GET').toUpperCase();
 
+  if (method === 'OPTIONS') {
+    res.writeHead(204, CORS_HEADERS);
+    res.end();
+    return;
+  }
+
   if (url.pathname === '/health') {
     sendJson(res, 200, { ok: true, timestamp: nowIso() });
+    return;
+  }
+
+  if (url.pathname === '/jobs' && method === 'GET') {
+    const allJobs = Array.from(jobs.values()).sort((left, right) =>
+      right.updatedAt.localeCompare(left.updatedAt)
+    );
+    sendJson(res, 200, allJobs);
     return;
   }
 
@@ -159,6 +189,10 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 404, { error: 'Job not found.' });
       return;
     }
+    if (job.status !== 'ready_for_review') {
+      sendJson(res, 409, { error: 'Only jobs ready for review can be approved.' });
+      return;
+    }
     const body = (await parseBody(req)) as Record<string, unknown>;
     job.reviewer = typeof body.reviewer === 'string' ? body.reviewer : job.reviewer;
     job.approvedAt = nowIso();
@@ -174,10 +208,31 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 404, { error: 'Job not found.' });
       return;
     }
+    if (job.status !== 'ready_for_review') {
+      sendJson(res, 409, { error: 'Only jobs ready for review can be denied.' });
+      return;
+    }
     const body = (await parseBody(req)) as Record<string, unknown>;
     job.reviewer = typeof body.reviewer === 'string' ? body.reviewer : job.reviewer;
     job.deniedAt = nowIso();
     setJobStatus(job, 'denied');
+    sendJson(res, 200, job);
+    return;
+  }
+
+  if (url.pathname.endsWith('/cancel') && method === 'POST') {
+    const jobId = getJobIdFromPath(url.pathname.replace(/\/cancel$/, ''));
+    const job = jobId ? jobs.get(jobId) : undefined;
+    if (!job) {
+      sendJson(res, 404, { error: 'Job not found.' });
+      return;
+    }
+    if (job.status !== 'queued' && job.status !== 'running') {
+      sendJson(res, 409, { error: 'Only queued or running jobs can be canceled.' });
+      return;
+    }
+    job.canceledAt = nowIso();
+    setJobStatus(job, 'canceled');
     sendJson(res, 200, job);
     return;
   }
