@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 
-import type { RegisteredTool } from '../../types';
+import type { RegisteredTool } from '../types';
 
 const BASE = 'https://foodfinder.oregonfoodbank.org/';
 const DEFAULT_N = 10;

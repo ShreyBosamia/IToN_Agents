@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import * as memory from '../src/memory';
+import type { AIMessage } from '../src/types';
 
 describe('Memory Tool-call Dependency', () => {
   beforeEach(async () => {
@@ -20,7 +21,7 @@ describe('Memory Tool-call Dependency', () => {
       tool_call_id: 'abc123',
     };
 
-    await memory.addMessages([assistantMsg, toolMsg]);
+    await memory.addMessages([assistantMsg as AIMessage, toolMsg as AIMessage]);
 
     const result = await memory.getMessages(1);
 
