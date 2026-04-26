@@ -4,7 +4,7 @@ import { runAgent } from '../src/agent.ts';
 import { runQueryGenerator, saveQueriesToFile } from '../src/agents/queryGenerator.ts';
 import { runSearchAgent } from '../src/agents/searchAgent.ts';
 import { SYSTEM_PROMPT } from '../src/systemPrompt.ts';
-import { tools } from '../src/tools/index.ts';
+import { tools, closeBrowser } from '../src/tools/index.ts';
 
 type SanityBlock = {
   _type: 'block';
@@ -682,6 +682,8 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRun
     sanityDocs.push(fallbackDoc);
     extracted.push({ url, result: fallbackDoc, method: 'fallback' });
   }
+
+  await closeBrowser();
 
   const sanityFile = path.join(
     resolvedOutputDir,

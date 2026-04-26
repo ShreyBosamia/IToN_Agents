@@ -1,12 +1,29 @@
 import { createHash } from 'crypto';
 
 import { chromium } from 'playwright';
+import type { Browser } from 'playwright';
 
 import type { RegisteredTool } from '../types';
 
 const MAX_TEXT = 8000;
 const MAX_HTML = 12000;
 const MAX_LINKS = 300;
+
+let _browser: Browser | null = null;
+
+async function getBrowser(): Promise<Browser> {
+  if (!_browser || !_browser.isConnected()) {
+    _browser = await chromium.launch({ headless: true });
+  }
+  return _browser;
+}
+
+export async function closeBrowser(): Promise<void> {
+  if (_browser) {
+    await _browser.close().catch(() => {});
+    _browser = null;
+  }
+}
 
 export const tools: RegisteredTool[] = [
   {
@@ -38,7 +55,7 @@ export const tools: RegisteredTool[] = [
         waitForNetworkIdleMs?: number;
       };
 
-      const browser = await chromium.launch({ headless: true });
+      const browser = await getBrowser();
       const context = await browser.newContext({
         userAgent: undefined, // let Playwright pick a reasonable UA
         locale: 'en-US',
@@ -228,7 +245,6 @@ export const tools: RegisteredTool[] = [
       } finally {
         // Always clean up even if an exception is thrown
         await context.close().catch(() => {});
-        await browser.close().catch(() => {});
       }
     },
   },
