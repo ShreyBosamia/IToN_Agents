@@ -1,6 +1,6 @@
 import type OpenAI from 'openai';
 
-import { openai } from './ai.ts';
+import { getOpenAI } from './ai.ts';
 import { SYSTEM_PROMPT } from './systemPrompt.ts';
 import type { AIMessage } from './types';
 
@@ -11,6 +11,7 @@ export const runLLM = async ({
   messages: AIMessage[];
   tools: OpenAI.Chat.Completions.ChatCompletionTool[];
 }) => {
+  const openai = getOpenAI();
   const req: Parameters<typeof openai.chat.completions.create>[0] = {
     model: 'gpt-4o-mini',
     temperature: 0.1,
