@@ -4,7 +4,10 @@ import globals from 'globals';
 import ts from 'typescript-eslint';
 
 export default [
-  { name: 'globals', ignores: ['node_modules/**', 'dist/**', 'coverage/**', 'db.json'] },
+  {
+    name: 'globals',
+    ignores: ['node_modules/**', 'dist/**', '**/dist/**', 'coverage/**', 'db.json'],
+  },
   js.configs.recommended,
   ...ts.configs.recommended,
   {

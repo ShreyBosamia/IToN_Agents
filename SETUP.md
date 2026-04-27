@@ -11,6 +11,7 @@ This document covers environment setup, CLI usage, API endpoints, and developmen
 - Node.js 18+ (tested on Node 20)
 - An OpenAI API key
 - A Brave Search API key (required for search/pipeline stages)
+- A Firecrawl API key (required for the default scraper path)
 
 ---
 
@@ -29,9 +30,14 @@ This document covers environment setup, CLI usage, API endpoints, and developmen
    ```env
    OPENAI_API_KEY=your_openai_api_key
    BRAVE_SEARCH_API_KEY=your_brave_search_api_key
+   FIRECRAWL_API_KEY=your_firecrawl_api_key
+   SCRAPER_PROVIDER=auto
+   FIRECRAWL_TIMEOUT_MS=30000
+   FIRECRAWL_MAX_AGE_MS=0
    ```
 
    Note: the env variable name is `OPENAI_API_KEY` (no extra underscore).
+   `SCRAPER_PROVIDER=auto` is the recommended default: Firecrawl first, Playwright fallback.
 
 3. (Optional) Target website for the original HTML-analysis agent
 
@@ -59,7 +65,7 @@ npx tsx index.ts "Extract address and contacts from the page."
 This flow:
 
 - Sends your prompt plus a system instruction to OpenAI (`gpt-4o-mini`).
-- Lets the model auto-invoke the `scrape_website` tool (Playwright) to retrieve trimmed page content and metadata.
+- Lets the model auto-invoke the `scrape_website` tool, which now uses **Firecrawl first** and falls back to **Playwright** when needed.
 - Returns **raw JSON** describing the organization/resource when possible (see `src/systemPrompt.ts`).
 
 ### 2. Query Generator agent
@@ -140,6 +146,14 @@ This pipeline connects the Query Generator, a Brave Search-based Search Agent, a
 npm run pipeline -- "<CITY>" "<STATE_ABBREV>" "<CATEGORY>" [perQuery] [maxUrls]
 ```
 
+Preferred shortcuts:
+
+```bash
+npm run pipeline:auto -- "<CITY>" "<STATE_ABBREV>" "<CATEGORY>" [perQuery] [maxUrls]
+npm run pipeline:firecrawl -- "<CITY>" "<STATE_ABBREV>" "<CATEGORY>" [perQuery] [maxUrls]
+npm run pipeline:playwright -- "<CITY>" "<STATE_ABBREV>" "<CATEGORY>" [perQuery] [maxUrls]
+```
+
 Example:
 
 ```bash
@@ -157,7 +171,23 @@ This will:
 <City>_<CATEGORY>_pipeline.json
 ```
 
-### 4. HTTP pipeline server (review + approval workflow)
+The scrape payload now also includes:
+
+- `provider`
+- `provider_attempts`
+- `raw_provider_metadata`
+
+### 4. Firecrawl crawl/map experiment
+
+To evaluate Firecrawl site discovery on a directory page without changing the production crawler:
+
+```bash
+npm run firecrawl:experiment -- "https://www.feedingillinois.org/food-banks"
+```
+
+This prints a JSON summary of Firecrawl `map` and `crawl` results.
+
+### 5. HTTP pipeline server (review + approval workflow)
 
 If you want to run the pipeline on a server and fetch the output over HTTP (e.g., to power a staff review UI), you can run the built-in HTTP server:
 
@@ -208,13 +238,15 @@ curl -X POST http://localhost:3000/jobs/<JOB_ID>/approve \
 - `index.ts` – CLI entrypoint for the original HTML-analysis agent.
 - `src/agent.ts` – conversation loop, tool execution.
 - `src/llm.ts` – OpenAI call setup (model, tools).
-- `src/tools/index.ts` – `scrape_website` tool implementation.
+- `src/tools/index.ts` – tool registry.
+- `src/tools/scrapeWebsite.ts` – `scrape_website` provider routing, normalization, and Firecrawl/Playwright implementations.
 - `src/systemPrompt.ts` – system instructions and target URL.
 - `src/memory.ts` – lightweight message storage (`db.json`).
 - `src/agents/queryGenerator.ts` – Query Generator functions.
 - `scripts/queryGeneratorCli.ts` – CLI wrapper for the Query Generator.
 - `src/agents/searchAgent.ts` – Search Agent functions (Brave Search API).
 - `scripts/pipeline.ts` – Deterministic pipeline demo (query → search → scrape).
+- `scripts/firecrawlDirectoryExperiment.ts` – Firecrawl `map`/`crawl` experiment for directory evaluation.
 
 ---
 

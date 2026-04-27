@@ -27,7 +27,7 @@ export type DirectoryCrawlResult = {
     blockedEvents: number;
   };
   errors: Array<{
-    stage: 'navigate' | 'search' | 'parse' | 'paginate' | 'rate_limit';
+    stage: 'discover' | 'navigate' | 'search' | 'parse' | 'paginate' | 'rate_limit';
     message: string;
     url?: string;
   }>;

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { addMessages, getMessages } from '../src/memory';
+import type { AIMessage } from '../src/types';
 
 const TEST_DB = 'db.json';
 
@@ -17,7 +18,7 @@ describe('Memory Robustness Tests', () => {
       content: null, // malformed
     };
 
-    await addMessages([badMsg]);
+    await addMessages([badMsg as AIMessage]);
     const result = await getMessages();
 
     expect(result.length).toBe(1);
@@ -32,7 +33,7 @@ describe('Memory Robustness Tests', () => {
       // missing content entirely
     };
 
-    await addMessages([badMsg]);
+    await addMessages([badMsg as AIMessage]);
     const result = await getMessages();
 
     expect(result.length).toBe(1);
@@ -47,11 +48,11 @@ describe('Memory Robustness Tests', () => {
       // missing tool_call_id → malformed
     };
 
-    await addMessages([badMsg]);
+    await addMessages([badMsg as AIMessage]);
     const result = await getMessages();
 
     expect(result.length).toBe(1);
     expect(result[0].role).toBe('tool');
-    expect(result[0].tool_call_id).toBeUndefined();
+    expect((result[0] as any).tool_call_id).toBeUndefined();
   });
 });
