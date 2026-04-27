@@ -126,7 +126,9 @@ type FirecrawlClientLike = {
 type ScrapeProviderDeps = {
   env?: NodeJS.ProcessEnv;
   createFirecrawlClient?: (apiKey: string) => FirecrawlClientLike;
-  firecrawlProviderFactory?: (deps?: Pick<ScrapeProviderDeps, 'env' | 'createFirecrawlClient'>) => ScrapeProvider;
+  firecrawlProviderFactory?: (
+    deps?: Pick<ScrapeProviderDeps, 'env' | 'createFirecrawlClient'>
+  ) => ScrapeProvider;
   playwrightProviderFactory?: () => ScrapeProvider;
 };
 
@@ -195,9 +197,7 @@ function isPlaywrightFirstHost(url: string, env = process.env): boolean {
   return configured.includes(hostname);
 }
 
-export function resolveScraperProviderMode(
-  env = process.env
-): 'auto' | 'firecrawl' | 'playwright' {
+export function resolveScraperProviderMode(env = process.env): 'auto' | 'firecrawl' | 'playwright' {
   const raw = (env.SCRAPER_PROVIDER || 'auto').trim().toLowerCase();
   if (raw === 'firecrawl' || raw === 'playwright') return raw;
   return 'auto';
@@ -463,47 +463,51 @@ function createPlaywrightProvider(): ScrapeProvider {
             .filter(Boolean);
         });
 
-        const metaExtras = await page.evaluate((opts) => {
-          const og = {
-            title:
-              document.querySelector("meta[property='og:title']")?.getAttribute('content') || '',
-            description:
-              document.querySelector("meta[property='og:description']")?.getAttribute('content') ||
-              '',
-            locale:
-              document.querySelector("meta[property='og:locale']")?.getAttribute('content') || '',
-            url: document.querySelector("meta[property='og:url']")?.getAttribute('content') || '',
-          };
+        const metaExtras = await page.evaluate(
+          (opts) => {
+            const og = {
+              title:
+                document.querySelector("meta[property='og:title']")?.getAttribute('content') || '',
+              description:
+                document
+                  .querySelector("meta[property='og:description']")
+                  ?.getAttribute('content') || '',
+              locale:
+                document.querySelector("meta[property='og:locale']")?.getAttribute('content') || '',
+              url: document.querySelector("meta[property='og:url']")?.getAttribute('content') || '',
+            };
 
-          const canonicalEl = document.querySelector("link[rel='canonical']");
-          const canonical = canonicalEl ? canonicalEl.getAttribute('href') || '' : '';
+            const canonicalEl = document.querySelector("link[rel='canonical']");
+            const canonical = canonicalEl ? canonicalEl.getAttribute('href') || '' : '';
 
-          const robotsEl = document.querySelector("meta[name='robots']");
-          const robots = robotsEl ? robotsEl.getAttribute('content') || '' : '';
+            const robotsEl = document.querySelector("meta[name='robots']");
+            const robots = robotsEl ? robotsEl.getAttribute('content') || '' : '';
 
-          const scripts = Array.from(
-            document.querySelectorAll("script[type='application/ld+json']")
-          );
-          const ld_json = [];
-          for (const script of scripts) {
-            const raw = (script.textContent || '').trim();
-            if (!raw) continue;
-            try {
-              const cleaned = raw.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/g, '');
-              ld_json.push(JSON.parse(cleaned));
-            } catch {
-              continue;
+            const scripts = Array.from(
+              document.querySelectorAll("script[type='application/ld+json']")
+            );
+            const ld_json = [];
+            for (const script of scripts) {
+              const raw = (script.textContent || '').trim();
+              if (!raw) continue;
+              try {
+                const cleaned = raw.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/g, '');
+                ld_json.push(JSON.parse(cleaned));
+              } catch {
+                continue;
+              }
             }
-          }
 
-          const mainEl = document.querySelector('main, article');
-          const bodyText = (document.body && (document.body.innerText || '').trim()) || '';
-          const mainText = opts.includeAllContent
-            ? bodyText
-            : (mainEl && (mainEl.textContent || '').trim()) || bodyText || '';
+            const mainEl = document.querySelector('main, article');
+            const bodyText = (document.body && (document.body.innerText || '').trim()) || '';
+            const mainText = opts.includeAllContent
+              ? bodyText
+              : (mainEl && (mainEl.textContent || '').trim()) || bodyText || '';
 
-          return { canonical, robots, og, ld_json, mainText };
-        }, { includeAllContent: Boolean(includeAllContent) });
+            return { canonical, robots, og, ld_json, mainText };
+          },
+          { includeAllContent: Boolean(includeAllContent) }
+        );
 
         const fullText = String(metaExtras.mainText || '');
         const text = fullText.slice(0, MAX_TEXT);
@@ -617,7 +621,9 @@ export async function scrapeWithProviders(
 
   const firecrawlResult = await firecrawlProvider.scrape(args);
   const fallbackDecision =
-    mode === 'auto' ? shouldFallbackFromFirecrawl(firecrawlResult, args.url, env) : { fallback: false };
+    mode === 'auto'
+      ? shouldFallbackFromFirecrawl(firecrawlResult, args.url, env)
+      : { fallback: false };
   const firecrawlAttempt = toAttempt(firecrawlResult, fallbackDecision.reason);
 
   if (!fallbackDecision.fallback) {
@@ -737,7 +743,9 @@ export async function runFirecrawlDirectoryExperiment(
     : [];
   const crawlData = Array.isArray(crawlResult?.data) ? crawlResult.data : [];
   const crawlUrls = crawlData
-    .map((doc) => (typeof doc.metadata === 'object' && doc.metadata ? (doc.metadata as any).sourceURL : ''))
+    .map((doc) =>
+      typeof doc.metadata === 'object' && doc.metadata ? (doc.metadata as any).sourceURL : ''
+    )
     .filter((item): item is string => Boolean(item));
 
   return {

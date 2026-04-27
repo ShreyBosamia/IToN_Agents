@@ -90,9 +90,7 @@ describe('rankTargetPageLinks', () => {
 
     expect(ranked.map((item) => item.url)).toContain('https://example.org/contact');
     expect(ranked.map((item) => item.url)).toContain('https://example.org/services/shelter');
-    expect(ranked.map((item) => item.url)).not.toContain(
-      'https://example.org/news/program-update'
-    );
+    expect(ranked.map((item) => item.url)).not.toContain('https://example.org/news/program-update');
     expect(ranked.map((item) => item.url)).not.toContain(
       'https://example.org/stories/client-story'
     );
@@ -444,12 +442,7 @@ describe('mergeSanityDocs', () => {
       },
     };
 
-    const merged = mergeSanityDocs(
-      primary,
-      enrichment,
-      'SHELTER',
-      'https://example.org/shelters'
-    );
+    const merged = mergeSanityDocs(primary, enrichment, 'SHELTER', 'https://example.org/shelters');
 
     expect(merged.name).toBe('Transition Projects');
     expect(merged.address).toBe('665 Northwest Hoyt Street, Portland, OR 97209');

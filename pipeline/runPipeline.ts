@@ -90,8 +90,7 @@ const STREET_ADDRESS_REGEX =
   /\b\d{1,6}\s+(?:[A-Za-z0-9#.'’&/-]+\s+){0,10}(Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Boulevard|Blvd|Lane|Ln|Way|Court|Ct|Place|Pl|Parkway|Pkwy|Highway|Hwy|Circle|Cir|Terrace|Ter)\b/gi;
 const STREET_ADDRESS_WITH_CITY_REGEX =
   /\d{1,6}\s+(?:[A-Za-z0-9#.'’&/-]+\s+){0,10}(Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Boulevard|Blvd|Lane|Ln|Way|Court|Ct|Place|Pl|Parkway|Pkwy|Highway|Hwy|Circle|Cir|Terrace|Ter)\b(?:,\s*[A-Za-z .'-]+,\s*(?:[A-Z]{2}|[A-Za-z .'-]+)(?:\s+\d{5}(?:-\d{4})?)?)?/i;
-const CITY_STATE_LINE_REGEX =
-  /\b[a-z .'-]+,\s*(?:[a-z]{2}|[a-z .'-]+)(?:\s+\d{5}(?:-\d{4})?)?\b/i;
+const CITY_STATE_LINE_REGEX = /\b[a-z .'-]+,\s*(?:[a-z]{2}|[a-z .'-]+)(?:\s+\d{5}(?:-\d{4})?)?\b/i;
 
 export type PageIntent =
   | 'home'
@@ -539,7 +538,10 @@ function normalizePageUrl(raw: string): string {
 }
 
 function normalizeStringKey(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
 }
 
 function normalizePhoneKey(value: string): string {
@@ -765,9 +767,15 @@ function normalizeHoursKey(hours: HoursData): string {
 function cleanNameCandidate(value: string): string {
   const normalized = normalizeWhitespace(value);
   if (!normalized) return '';
-  const pipe = normalized.split('|').map((part) => normalizeWhitespace(part)).filter(Boolean);
+  const pipe = normalized
+    .split('|')
+    .map((part) => normalizeWhitespace(part))
+    .filter(Boolean);
   if (pipe.length > 1 && pipe[0].length >= 4) return pipe[0];
-  const dash = normalized.split(' - ').map((part) => normalizeWhitespace(part)).filter(Boolean);
+  const dash = normalized
+    .split(' - ')
+    .map((part) => normalizeWhitespace(part))
+    .filter(Boolean);
   if (dash.length > 1 && dash[0].length >= 4) return dash[0];
   return normalized;
 }
@@ -796,7 +804,16 @@ function intentPriority(intent: PageIntent): number {
 }
 
 function fieldConfidence(
-  field: 'name' | 'description' | 'address' | 'geo' | 'phone' | 'email' | 'website' | 'hours' | 'service',
+  field:
+    | 'name'
+    | 'description'
+    | 'address'
+    | 'geo'
+    | 'phone'
+    | 'email'
+    | 'website'
+    | 'hours'
+    | 'service',
   intent: PageIntent
 ): number {
   const matrix: Record<typeof field, Record<PageIntent, number>> = {
@@ -1017,7 +1034,15 @@ export function rankTargetPageLinks(
 
     let bestIntent: PageIntent = 'general';
     let bestScore = 0;
-    for (const intent of ['contact', 'hours', 'location', 'services', 'program', 'about', 'faq'] as const) {
+    for (const intent of [
+      'contact',
+      'hours',
+      'location',
+      'services',
+      'program',
+      'about',
+      'faq',
+    ] as const) {
       const score = scoreIntentSignals(intent, pathSignals, textSignals, relSignals);
       if (score > bestScore) {
         bestScore = score;
@@ -1096,7 +1121,9 @@ function extractContactCandidatesFromLinks(links: Array<{ href?: string }>): {
 
 function extractPhonesFromText(text: string): string[] {
   const matches = text.match(/(?:\+?1[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}/g) || [];
-  return dedupeStrings(matches.map((match) => normalizeWhitespace(match))).filter(isLikelyPhoneNumber);
+  return dedupeStrings(matches.map((match) => normalizeWhitespace(match))).filter(
+    isLikelyPhoneNumber
+  );
 }
 
 function extractEmailsFromText(text: string): string[] {
@@ -1135,19 +1162,13 @@ function extractAddressCandidatesFromText(text: string): string[] {
     }
   }
 
-  const fullMatches = text.match(
-    new RegExp(STREET_ADDRESS_WITH_CITY_REGEX.source, 'g')
-  ) || [];
+  const fullMatches = text.match(new RegExp(STREET_ADDRESS_WITH_CITY_REGEX.source, 'g')) || [];
 
   candidates.push(...fullMatches.map((match) => normalizeWhitespace(match)));
   return dedupeStrings(candidates.map((value) => sanitizeAddressValue(value)).filter(Boolean));
 }
 
-function extractServiceLabelsFromPage(
-  title: string,
-  text: string,
-  pageUrl: string
-): string[] {
+function extractServiceLabelsFromPage(title: string, text: string, pageUrl: string): string[] {
   const signals = `${title}\n${text}\n${pageUrl}`.toLowerCase();
   const labels: string[] = [];
   const keywords: Array<[string, string[]]> = [
@@ -1308,7 +1329,7 @@ export function collectPageEvidenceFromScrapedPage(
     );
   }
   pushCandidate(
-      evidence.websiteCandidates,
+    evidence.websiteCandidates,
     sanitizeWebsiteValue(website),
     finalUrl,
     intent,
@@ -1476,30 +1497,32 @@ function pickPreferredPageForField(
   const eligible = pages.filter((page) => pageFieldSignalCount(page, field) > 0);
   if (eligible.length === 0) return null;
 
-  return [...eligible].sort((a, b) => {
-    const scoreFor = (page: PageEvidence) => {
-      let score =
-        pageFieldIntentWeight(field, page.intent) +
-        sourceRelationScore(page.finalUrl, targetUrl) +
-        pageFieldSignalCount(page, field) * 8;
+  return (
+    [...eligible].sort((a, b) => {
+      const scoreFor = (page: PageEvidence) => {
+        let score =
+          pageFieldIntentWeight(field, page.intent) +
+          sourceRelationScore(page.finalUrl, targetUrl) +
+          pageFieldSignalCount(page, field) * 8;
 
-      if (field === 'contact' && page.phoneCandidates.length && page.emailCandidates.length) {
-        score += 12;
-      }
-      if (field === 'address' && page.phoneCandidates.length) score += 6;
-      if (field === 'hours' && page.phoneCandidates.length) score += 4;
+        if (field === 'contact' && page.phoneCandidates.length && page.emailCandidates.length) {
+          score += 12;
+        }
+        if (field === 'address' && page.phoneCandidates.length) score += 6;
+        if (field === 'hours' && page.phoneCandidates.length) score += 4;
 
-      if (aggregateRoot && (page.intent === 'location' || page.intent === 'program')) {
-        score -= field === 'hours' ? 6 : 14;
-      }
-      if (isNewsLikePath(page.finalUrl)) score -= 35;
-      return score;
-    };
+        if (aggregateRoot && (page.intent === 'location' || page.intent === 'program')) {
+          score -= field === 'hours' ? 6 : 14;
+        }
+        if (isNewsLikePath(page.finalUrl)) score -= 35;
+        return score;
+      };
 
-    const scoreDiff = scoreFor(b) - scoreFor(a);
-    if (scoreDiff !== 0) return scoreDiff;
-    return a.finalUrl.localeCompare(b.finalUrl);
-  })[0] ?? null;
+      const scoreDiff = scoreFor(b) - scoreFor(a);
+      if (scoreDiff !== 0) return scoreDiff;
+      return a.finalUrl.localeCompare(b.finalUrl);
+    })[0] ?? null
+  );
 }
 
 export function buildSanityDocFromEvidence(
@@ -1594,96 +1617,101 @@ export function buildSanityDocFromEvidence(
   const address = selectedAddressCandidate?.value || '';
   const selectedAddressSource = selectedAddressCandidate?.sourceUrl || '';
   const location = (selectedAddressSource
-    ? pickBestCandidate(allGeoCandidates, (value) => `${value.latitude ?? ''}:${value.longitude ?? ''}`, {
-        extraScore: (candidate) => {
-          let score = sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl);
-          if (normalizePageUrl(candidate.sourceUrl) === normalizePageUrl(selectedAddressSource)) {
-            score += 40;
-          }
-          return score;
-        },
-        disqualify: (candidate) =>
-          aggregateRoot &&
-          sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl) < 28 &&
-          normalizePageUrl(candidate.sourceUrl) !== normalizePageUrl(selectedAddressSource),
-      })
+    ? pickBestCandidate(
+        allGeoCandidates,
+        (value) => `${value.latitude ?? ''}:${value.longitude ?? ''}`,
+        {
+          extraScore: (candidate) => {
+            let score = sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl);
+            if (normalizePageUrl(candidate.sourceUrl) === normalizePageUrl(selectedAddressSource)) {
+              score += 40;
+            }
+            return score;
+          },
+          disqualify: (candidate) =>
+            aggregateRoot &&
+            sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl) < 28 &&
+            normalizePageUrl(candidate.sourceUrl) !== normalizePageUrl(selectedAddressSource),
+        }
+      )
     : pickBestCandidate(
         allGeoCandidates,
         (value) => `${value.latitude ?? ''}:${value.longitude ?? ''}`,
         {
-          extraScore: (candidate) => sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl),
+          extraScore: (candidate) =>
+            sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl),
           disqualify: (candidate) =>
             aggregateRoot && sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl) < 28,
         }
-      ))?.value || { latitude: null, longitude: null };
-  const phone = pickBestCandidate(allPhoneCandidates, normalizePhoneKey, {
-    extraScore: (candidate) => {
-      let score = sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl);
-      if (
-        preferredContactPage &&
-        normalizePageUrl(candidate.sourceUrl) === normalizePageUrl(preferredContactPage.finalUrl)
-      ) {
-        score += 30;
-      }
-      if (candidate.intent === 'contact') score += 12;
-      if (aggregateRoot && (candidate.intent === 'location' || candidate.intent === 'program')) {
-        score -= 20;
-      }
-      return score;
-    },
-    disqualify: (candidate) =>
-      aggregateRoot &&
-      sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl) < 28 &&
-      (candidate.intent === 'location' || candidate.intent === 'program'),
-  })?.value || '';
-  const email = pickBestCandidate(allEmailCandidates, normalizeStringKey, {
-    extraScore: (candidate) => {
-      let score = sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl);
-      if (
-        preferredContactPage &&
-        normalizePageUrl(candidate.sourceUrl) === normalizePageUrl(preferredContactPage.finalUrl)
-      ) {
-        score += 30;
-      }
-      if (candidate.intent === 'contact') score += 12;
-      if (aggregateRoot && (candidate.intent === 'location' || candidate.intent === 'program')) {
-        score -= 20;
-      }
-      return score;
-    },
-    disqualify: (candidate) =>
-      aggregateRoot &&
-      sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl) < 28 &&
-      (candidate.intent === 'location' || candidate.intent === 'program'),
-  })?.value || '';
+      )
+  )?.value || { latitude: null, longitude: null };
+  const phone =
+    pickBestCandidate(allPhoneCandidates, normalizePhoneKey, {
+      extraScore: (candidate) => {
+        let score = sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl);
+        if (
+          preferredContactPage &&
+          normalizePageUrl(candidate.sourceUrl) === normalizePageUrl(preferredContactPage.finalUrl)
+        ) {
+          score += 30;
+        }
+        if (candidate.intent === 'contact') score += 12;
+        if (aggregateRoot && (candidate.intent === 'location' || candidate.intent === 'program')) {
+          score -= 20;
+        }
+        return score;
+      },
+      disqualify: (candidate) =>
+        aggregateRoot &&
+        sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl) < 28 &&
+        (candidate.intent === 'location' || candidate.intent === 'program'),
+    })?.value || '';
+  const email =
+    pickBestCandidate(allEmailCandidates, normalizeStringKey, {
+      extraScore: (candidate) => {
+        let score = sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl);
+        if (
+          preferredContactPage &&
+          normalizePageUrl(candidate.sourceUrl) === normalizePageUrl(preferredContactPage.finalUrl)
+        ) {
+          score += 30;
+        }
+        if (candidate.intent === 'contact') score += 12;
+        if (aggregateRoot && (candidate.intent === 'location' || candidate.intent === 'program')) {
+          score -= 20;
+        }
+        return score;
+      },
+      disqualify: (candidate) =>
+        aggregateRoot &&
+        sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl) < 28 &&
+        (candidate.intent === 'location' || candidate.intent === 'program'),
+    })?.value || '';
   const pickedWebsiteCandidate =
     pickBestCandidate(allWebsiteCandidates, normalizePageUrl, {
       extraScore: (candidate) =>
         sourceRelationScore(candidate.value, normalizedFallbackUrl) +
         sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl),
     })?.value || '';
-  const website = pickPreferredString(
-    normalizedFallbackUrl,
-    pickedWebsiteCandidate,
-    (value) => websiteSelectionQuality(value, normalizedFallbackUrl)
+  const website = pickPreferredString(normalizedFallbackUrl, pickedWebsiteCandidate, (value) =>
+    websiteSelectionQuality(value, normalizedFallbackUrl)
   );
-  const hours =
-    pickBestCandidate(allHoursCandidates, normalizeHoursKey, {
-      extraScore: (candidate) => {
-        let score = sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl);
-        if (
-          preferredHoursPage &&
-          normalizePageUrl(candidate.sourceUrl) === normalizePageUrl(preferredHoursPage.finalUrl)
-        ) {
-          score += 25;
-        }
-        if (candidate.intent === 'hours') score += 15;
-        return score;
-      },
-    })?.value || {
-      periods: [],
-      weekdayText: [],
-    };
+  const hours = pickBestCandidate(allHoursCandidates, normalizeHoursKey, {
+    extraScore: (candidate) => {
+      let score = sourceRelationScore(candidate.sourceUrl, normalizedFallbackUrl);
+      if (
+        preferredHoursPage &&
+        normalizePageUrl(candidate.sourceUrl) === normalizePageUrl(preferredHoursPage.finalUrl)
+      ) {
+        score += 25;
+      }
+      if (candidate.intent === 'hours') score += 15;
+      return score;
+    },
+  })?.value || {
+    periods: [],
+    weekdayText: [],
+  };
 
   const mergedServiceTypes = new Set<string>();
   mergedServiceTypes.add(category);
@@ -1692,31 +1720,34 @@ export function buildSanityDocFromEvidence(
     mergedServiceTypes.add(candidate.value);
   }
 
-  return sanitizeSanityDoc({
-    name: name || website || '',
-    description: [
-      {
-        _type: 'block',
-        children: [{ _type: 'span', text: descriptionText }],
-        markDefs: [],
-        style: 'normal',
+  return sanitizeSanityDoc(
+    {
+      name: name || website || '',
+      description: [
+        {
+          _type: 'block',
+          children: [{ _type: 'span', text: descriptionText }],
+          markDefs: [],
+          style: 'normal',
+        },
+      ],
+      address,
+      location,
+      serviceTypes: Array.from(mergedServiceTypes)
+        .filter(Boolean)
+        .map((_id) => ({ _id })),
+      hoursOfOperation: {
+        periods: hours.periods,
+        weekdayText: hours.weekdayText,
       },
-    ],
-    address,
-    location,
-    serviceTypes: Array.from(mergedServiceTypes)
-      .filter(Boolean)
-      .map((_id) => ({ _id })),
-    hoursOfOperation: {
-      periods: hours.periods,
-      weekdayText: hours.weekdayText,
+      contact: {
+        phone,
+        email,
+        website,
+      },
     },
-    contact: {
-      phone,
-      email,
-      website,
-    },
-  }, category);
+    category
+  );
 }
 
 function shouldIncludeAllContent(intent: PageIntent): boolean {
@@ -1740,7 +1771,9 @@ export function isSanityDocIncomplete(doc: SanityDoc): boolean {
   );
 }
 
-function sanitizeHoursData(hours: SanityDoc['hoursOfOperation'] | undefined): SanityDoc['hoursOfOperation'] {
+function sanitizeHoursData(
+  hours: SanityDoc['hoursOfOperation'] | undefined
+): SanityDoc['hoursOfOperation'] {
   const weekdayText = Array.isArray(hours?.weekdayText)
     ? dedupeStrings(hours.weekdayText.map((entry) => sanitizeScalarString(entry)).filter(Boolean))
     : [];
@@ -1818,7 +1851,9 @@ export function mergeSanityDocs(
 ): SanityDoc {
   const primaryDoc = sanitizeSanityDoc(primary, category);
   const enrichmentDoc = sanitizeSanityDoc(enrichment, category);
-  const normalizedTargetUrl = sanitizeWebsiteValue(targetUrl || primaryDoc.contact.website || enrichmentDoc.contact.website);
+  const normalizedTargetUrl = sanitizeWebsiteValue(
+    targetUrl || primaryDoc.contact.website || enrichmentDoc.contact.website
+  );
   const description =
     primaryDoc.description?.[0]?.children?.[0]?.text?.trim() ||
     !enrichmentDoc.description?.[0]?.children?.[0]?.text?.trim()
@@ -1855,15 +1890,25 @@ export function mergeSanityDocs(
       : primaryDoc.hoursOfOperation;
 
   return {
-    name: preferEnrichmentIdentity ? enrichmentDoc.name || primaryDoc.name : primaryDoc.name || enrichmentDoc.name,
+    name: preferEnrichmentIdentity
+      ? enrichmentDoc.name || primaryDoc.name
+      : primaryDoc.name || enrichmentDoc.name,
     description,
     address: pickPreferredString(primaryDoc.address, enrichmentDoc.address, addressQuality),
     location,
     serviceTypes: Array.from(mergedServiceTypes.values()),
     hoursOfOperation: selectedHours,
     contact: {
-      phone: pickPreferredString(primaryDoc.contact.phone, enrichmentDoc.contact.phone, phoneQuality),
-      email: pickPreferredString(primaryDoc.contact.email, enrichmentDoc.contact.email, emailQuality),
+      phone: pickPreferredString(
+        primaryDoc.contact.phone,
+        enrichmentDoc.contact.phone,
+        phoneQuality
+      ),
+      email: pickPreferredString(
+        primaryDoc.contact.email,
+        enrichmentDoc.contact.email,
+        emailQuality
+      ),
       website: pickPreferredString(
         primaryDoc.contact.website,
         enrichmentDoc.contact.website,
@@ -1923,7 +1968,11 @@ export async function collectRetrievalBundle(
   const baseUrl = firstNonEmpty([root.final_url, root.url, url]);
   const candidates =
     enableMultiPage && targetLimit > 0
-      ? rankTargetPageLinks(root.data?.links || [], baseUrl, Math.max(HOURS_LINK_LIMIT, targetLimit))
+      ? rankTargetPageLinks(
+          root.data?.links || [],
+          baseUrl,
+          Math.max(HOURS_LINK_LIMIT, targetLimit)
+        )
       : [];
 
   for (const candidate of candidates) {
