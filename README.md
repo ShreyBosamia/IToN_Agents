@@ -1,257 +1,117 @@
-# AI Agent Overview
+# In Time of Need — AI Agent Pipeline
 
-A minimal TypeScript agent system that calls OpenAI’s Chat Completions API with tool calling.
+**An AI-powered pipeline that automatically discovers, extracts, and normalizes local social service resources — food banks, shelters, and more — from across the web.**
 
-Originally, this project focused on analyzing a single target webpage. It now also includes a **Query Generator agent** that produces search queries as the first step of a broader “In Time of Need” data pipeline (query generation → web search → URL classification → scraping → information extraction → normalization → API update).
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/) [![CI](https://github.com/ShreyBosamia/IToN_Agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ShreyBosamia/IToN_Agents/actions)
 
----
-
-## Prerequisites
-
-- Node.js 18+ (tested on Node 20)
-- An OpenAI API key
+**[View GitHub](https://github.com/ShreyBosamia/IToN_Agents) · [Get Started](#getting-started) · [Report an Issue](https://github.com/ShreyBosamia/IToN_Agents/issues)**
 
 ---
 
-## Setup
+## The Problem
 
-1. Install dependencies
+Community resource directories — listing food banks, homeless shelters, addiction services, and other local aid — go stale fast. Organizations move, change hours, or shut down. Keeping that data accurate requires manual research across hundreds of websites, which is slow, expensive, and hard to scale.
 
-   ```bash
-   npm install
-
-   ```
-
-2. Configure environment
-
-   Create a `.env` file in the project root with:
-
-   ```env
-   OPENAI_API_KEY=your_openai_api_key
-   BRAVE_SEARCH_API_KEY=your_brave_search_api_key
-   FIRECRAWL_API_KEY=your_firecrawl_api_key
-   SCRAPER_PROVIDER=auto
-   FIRECRAWL_TIMEOUT_MS=30000
-   FIRECRAWL_MAX_AGE_MS=0
-   ```
-
-   Note: the env variable name is `OPENAI_API_KEY` (no extra underscore).
-   The Brave Search key is required for the search stage of the pipeline.
-   Firecrawl is now the default managed scrape provider when `SCRAPER_PROVIDER=auto`.
-
-3. (Optional) Target website for the original HTML-analysis agent
-
-   The default target URL is set in `src/systemPrompt.ts`. Update the `<context>...</context>` URL if you want the main agent to analyze a different site.
+**IToN Agents solves this by automating the entire discovery and extraction workflow**, turning a city, state, and resource category into structured, reviewable JSON data — ready to feed into a live resource directory.
 
 ---
 
-## Usage
+## How It Works
 
-### 1. Single-site extraction agent
+<img src="docs/adr/images/diagram.png" alt="Pipeline architecture diagram showing staff input flowing through Query Generator, Search Agent, and Web Scraper agents in the cloud, producing JSON output that staff review before publishing to Sanity CMS" width="400">
 
-You can pass a prompt directly via npm scripts. Use `--` so arguments pass through to the script.
+_Staff submit a city, state, and resource category; AI agents in the cloud generate queries, search the web, scrape sites, and extract structured data; staff review and approve results before they publish to the Sanity CMS database._
+
+1. **Query Generation** — an AI agent crafts 10 high-quality, city-specific search queries per resource category using few-shot prompting.
+2. **Web Search** — queries are sent to the Brave Search API; results are deduplicated across all 10 queries.
+3. **Scraping** — the pipeline now uses **Firecrawl first** for managed scraping and falls back to **Playwright** when a page needs browser-based recovery.
+4. **Extraction** — a second AI agent reads each page and outputs structured JSON: organization name, address, hours, services, phone, and website.
+5. **Human Review** — extracted data is staged in a job queue; a React UI lets staff approve or reject results before anything reaches production.
+
+---
+
+## Key Features
+
+- **AI Query Generation** — generates exactly 10 optimized search queries per city/state/category, validated with automatic repair-retry if the output format is wrong.
+- **Brave Search Integration** — searches all queries via the Brave Search API and deduplicates discovered URLs, maximizing coverage while minimizing redundant scraping.
+- **Hybrid Scraping** — Firecrawl is the default managed scrape layer, with Playwright fallback for harder or more dynamic sites.
+- **Structured Data Extraction** — `gpt-4o-mini` reads scraped content and outputs consistent JSON fields (name, address, hours, phone, services, website) across all resource types.
+- **Human-in-the-Loop Approval** — an HTTP job server exposes a review API and a React frontend so staff can approve or deny pipeline output before it's published to the live directory.
+
+---
+
+## Demo & Sample Output
+
+<img src="docs/adr/images/pipeline-output.png" alt="Terminal screenshot showing npm run pipeline command for Corvallis OR Food_Bank, with the pipeline saving query, output, and sanity JSON files, then printing the extracted South Corvallis Food Bank record including address, hours, and contact info" width="700">
+
+_Running `npm run pipeline:auto -- "Corvallis" "OR" "FOOD_BANK" 1 1` — the pipeline generates queries, scrapes the web, and outputs a structured JSON record in seconds._
+
+> See more examples in [`examples/Portland_Homeless_shelter_pipeline.json`](examples/Portland_Homeless_shelter_pipeline.json) and [`examples/Salem_FOOD_BANK_queries.txt`](examples/Salem_FOOD_BANK_queries.txt).
+
+---
+
+## Getting Started
+
+**Requirements:** Node.js 18+, an [OpenAI API key](https://platform.openai.com/), a [Brave Search API key](https://brave.com/search/api/), and a Firecrawl API key for the default scraper path.
 
 ```bash
-npm start -- "Summarize the content of the provided website."
+# 1. Clone and install
+git clone https://github.com/ShreyBosamia/IToN_Agents.git
+cd IToN_Agents
+npm install
+
+# 2. Add your API keys and scraper settings
+cat >> .env <<'ENV'
+OPENAI_API_KEY=your_key_here
+BRAVE_SEARCH_API_KEY=your_key_here
+FIRECRAWL_API_KEY=your_key_here
+SCRAPER_PROVIDER=auto
+FIRECRAWL_TIMEOUT_MS=30000
+FIRECRAWL_MAX_AGE_MS=0
+ENV
+
+# 3. Run the full pipeline
+npm run pipeline:auto -- "Salem" "OR" "FOOD_BANK"
 ```
 
-Equivalents:
+Important notes:
+
+- `SCRAPER_PROVIDER=auto` is the default recommended mode: Firecrawl first, Playwright fallback.
+- You can force a provider for comparison:
+  - `npm run pipeline:firecrawl -- "Salem" "OR" "FOOD_BANK"`
+  - `npm run pipeline:playwright -- "Salem" "OR" "FOOD_BANK"`
+- Output is written to `outputs/<City>_<CATEGORY>_pipeline.json` and `outputs/<City>_<CATEGORY>_sanity.json`.
+
+Useful commands:
 
 ```bash
-npm run start -- "Find the clinic hours and phone numbers."
-npx tsx index.ts "Extract address and contacts from the page."
-```
-
-This flow:
-
-- Sends your prompt plus a system instruction to OpenAI (`gpt-4o-mini`).
-- Lets the model auto-invoke the `scrape_website` tool, which now uses **Firecrawl first** and falls back to **Playwright** when needed.
-- Returns **raw JSON** describing the organization/resource when possible (see `src/systemPrompt.ts`).
-
-### 2. Query Generator agent
-
-The **Query Generator** is the first step of the In Time of Need pipeline. Given a **city**, **state**, and **category** (e.g., `FOOD_BANK`, `SHELTER`, `DRUG_ASSISTANCE`, `ABUSE_SUPPORT`), it:
-
-- Calls OpenAI with a carefully designed system prompt and few-shot example.
-- Instructs the model to return **valid JSON only**: a JSON array of **exactly 10 distinct** query strings.
-- Parses and validates the response (JSON → `string[]`) to guarantee exactly 10 unique queries.
-- If the model output fails validation (wrong count, duplicates, invalid JSON), it performs a **single repair retry** with stricter instructions.
-- Uses realistic phrases a person would type into a search engine.
-- Prefers `.org`, `.gov`, and `.edu` domains via `site:` filters where helpful.
-- Writes the queries to a plain `.txt` file (10 lines, one query per line) that subsequent agents (Search Agent, etc.) can consume.
-
-#### CLI usage
-
-From the repo root:
-
-```bash
-npm run query -- "<CITY>" "<STATE_ABBREV>" "<CATEGORY>"
-```
-
-Examples:
-
-```bash
+# Query generation only
 npm run query -- "Salem" "OR" "FOOD_BANK"
-npm run query -- "Portland" "OR" "SHELTER"
-npm run query -- "Eugene" "OR" "ABUSE_SUPPORT"
+
+# Firecrawl directory map/crawl experiment
+npm run firecrawl:experiment -- "https://www.feedingillinois.org/food-banks"
+
+# HTTP review server
+npm run server
 ```
 
-Note: categories are treated as an input string. For best consistency (and to match category-specific prompt hints), use **UPPER_SNAKE_CASE** categories like `FOOD_BANK` and `SHELTER`.
+For full CLI reference, server setup, and development commands, see **[SETUP.md](SETUP.md)**.
 
-This will:
+---
 
-1. Print the 10 generated queries to stdout.
-2. Create a file in `examples/` named:
+## Scraping Notes
 
-   ```text
-   <CityWithUnderscores>_<CATEGORY>_queries.txt
-   ```
-
-   For example:
-   - Input: `Salem OR FOOD_BANK`
-
-- Output file: `examples/Salem_FOOD_BANK_queries.txt`
-
-#### Query text file format
-
-Each query file is **plain UTF-8 text** with:
-
-- Exactly **10 lines**
-- One query per line
-- No numbering, no headers, no JSON, no extra commentary
-
-This is intentionally different from the model response format (JSON array). The JSON contract is used only to make generation/parsing reliable; the saved `.txt` remains line-delimited for simplicity.
-
-Example (`Salem_FOOD_BANK_queries.txt`):
-
-```text
-Salem OR food bank site:.org OR site:.gov
-food pantry "Salem, Oregon"
-free food boxes Salem OR
-emergency food assistance Marion County Oregon
-church food pantry Salem OR
-mobile food bank "Salem OR"
-community meal program "Salem Oregon"
-SNAP food resources Salem OR
-free groceries for families Salem OR
-low income food assistance Marion County OR
-```
-
-Downstream agents (the Search Agent) can read this file line-by-line and treat each line as an independent search query. This matches the example queries shown in the project’s AI pipeline diagram.
-
-### 3. Deterministic pipeline demo (query → search → scrape)
-
-This pipeline connects the Query Generator, a Brave Search-based Search Agent, and the scraper tool into a deterministic, step-by-step flow.
-
-```bash
-npm run pipeline -- "<CITY>" "<STATE_ABBREV>" "<CATEGORY>" [perQuery] [maxUrls]
-```
-
-Example:
-
-```bash
-npm run pipeline -- "Salem" "OR" "FOOD_BANK" 3 10
-```
-
-This will:
-
-1. Generate 10 queries and save them under `outputs/` as `<City>_<CATEGORY>_queries.txt`
-2. Search each query via Brave and collect the top N URLs per query
-3. Scrape the first `maxUrls` unique URLs
-4. Write the full pipeline output under `outputs/` to:
-
-```text
-<City>_<CATEGORY>_pipeline.json
-```
-
-The pipeline contract is unchanged. Each scrape result now also records:
+The public `scrape_website` contract is unchanged, but scrape results now include extra provider diagnostics:
 
 - `provider` — which backend produced the final result
 - `provider_attempts` — ordered scrape attempts and fallback reasons
 - `raw_provider_metadata` — provider-specific debug metadata
 
-### 4. Firecrawl crawl/map experiment
-
-To compare Firecrawl site discovery against an existing directory page without changing the production crawler:
-
-```bash
-npm run firecrawl:experiment -- "https://www.feedingillinois.org/food-banks"
-```
-
-This prints a JSON summary of Firecrawl `map` and `crawl` results for quick evaluation.
-
-### 5. HTTP pipeline server (review + approval workflow)
-
-If you want to run the pipeline on a server and fetch the output over HTTP (e.g., to power a staff review UI), you can run the built-in HTTP server:
-
-```bash
-npm run server
-```
-
-By default it listens on `PORT=3000`. The server exposes a minimal job-based API:
-
-- `POST /jobs` — start a pipeline run
-- `GET /jobs/:id` — fetch job status/output
-- `POST /jobs/:id/approve` — mark output approved
-- `POST /jobs/:id/deny` — mark output denied
-- `GET /health` — health check
-
-Example request:
-
-```bash
-curl -X POST http://localhost:3000/jobs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "city": "Salem",
-    "state": "OR",
-    "category": "FOOD_BANK",
-    "perQuery": 3,
-    "maxUrls": 10
-  }'
-```
-
-The response includes a job `id`, which you can poll:
-
-```bash
-curl http://localhost:3000/jobs/<JOB_ID>
-```
-
-When the status becomes `ready_for_review`, the `output` field contains the pipeline output (including the `sanity` array). Staff can then approve or deny:
-
-```bash
-curl -X POST http://localhost:3000/jobs/<JOB_ID>/approve \
-  -H "Content-Type: application/json" \
-  -d '{"reviewer": "staff@example.com"}'
-```
+This makes it easier to compare Firecrawl vs. Playwright behavior while keeping downstream extraction stable.
 
 ---
 
-## What it does
-
-### Original HTML analysis agent
-
-- Sends your prompt plus a system instruction to OpenAI (`gpt-4o-mini`).
-- When needed, the model auto-invokes the `scrape_website` tool to retrieve trimmed page content, links, and metadata.
-- The tool routes by `SCRAPER_PROVIDER`:
-  - `auto` (default): Firecrawl first, then Playwright fallback
-  - `firecrawl`: Firecrawl only
-  - `playwright`: Playwright only
-- The tool returns structured scrape output (truncated for safety), which is fed back to the model.
-- The model returns structured JSON according to the system prompt.
-
-### Query Generator agent
-
-- Uses a system prompt that defines its role: _“query generator for a web-search pipeline that finds local help resources.”_
-- Takes structured input (city, state, category) and produces a **fixed, predictable format**:
-  - Model response: JSON array of 10 strings
-  - Saved file: 10 queries, one per line
-- Uses a few-shot example (`Salem`, `OR`, `FOOD_BANK`) to enforce style and format.
-- Prefers `.org`, `.gov`, `.edu` domains where useful via `site:` filters.
-- Outputs to a `.txt` file for the next pipeline stage (Search Agent) rather than directly hitting a search API.
-
----
-
-## Key files
+## Key Files
 
 - `index.ts` – CLI entrypoint for the original HTML-analysis agent.
 - `src/agent.ts` – conversation loop, tool execution.
@@ -262,99 +122,22 @@ curl -X POST http://localhost:3000/jobs/<JOB_ID>/approve \
 - `src/memory.ts` – lightweight message storage (`db.json`).
 - `src/agents/queryGenerator.ts` – Query Generator functions:
   - `runQueryGenerator(city, state, category)` → returns 10 queries as a `string[]`
-  - `saveQueriesToFile(city, category, queries)` → writes the `.txt` file described above.
-
-- `scripts/queryGeneratorCli.ts` – CLI wrapper for the Query Generator, used by `npm run query`.
+  - `saveQueriesToFile(city, category, queries)` → writes the `.txt` query file
+- `scripts/queryGeneratorCli.ts` – CLI wrapper for the Query Generator.
 - `src/agents/searchAgent.ts` – Search Agent functions (Brave Search API).
-- `scripts/pipeline.ts` – Deterministic pipeline demo (query → search → scrape).
+- `scripts/pipeline.ts` – deterministic pipeline runner.
 - `scripts/firecrawlDirectoryExperiment.ts` – Firecrawl `map`/`crawl` experiment for directory evaluation.
 
 ---
 
-## Customization
+## Contacts
 
-### Models and temperature
+| Name            | GitHub                                             |
+| --------------- | -------------------------------------------------- |
+| Bailey Bounnam  | [@BaileyBounnam](https://github.com/BaileyBounnam) |
+| Adam Nguyen     | [@nguyenadamq](https://github.com/nguyenadamq)     |
+| Shrey Bosamia   | [@ShreyBosamia](https://github.com/ShreyBosamia)   |
+| Sungsoo Kim     | [@nalchamchi](https://github.com/nalchamchi)       |
+| Sierra Sverdrup | [@N8tur3](https://github.com/N8tur3)               |
 
-- The default model is `gpt-4o-mini` as defined in `src/llm.ts` and used similarly in the Query Generator.
-- You can change the model in `src/llm.ts` and in `src/agents/queryGenerator.ts` if you want a different OpenAI model (ensure it supports Chat Completions and tools).
-- Temperature is kept low (`0.1–0.2`) for predictable, parseable responses.
-
-### Query Generator prompt / categories
-
-- The Query Generator’s behavior is controlled by a system prompt and a few-shot example inside `src/agents/queryGenerator.ts`.
-- To tune behavior:
-  - Add new categories (e.g., `MENTAL_HEALTH`, `DISABILITY_SERVICES`) and update the prompt description.
-  - Adjust the example to emphasize new phrasing or additional `site:` filters.
-  - Keep the strict output requirements (exactly 10 distinct queries) to keep downstream parsing simple.
-
-### Tools & pipeline extension
-
-- You can add more tools in `src/tools` and register them in `src/tools/index.ts`.
-- The Query Generator is designed to be the first step in a larger AI agent pipeline that includes:
-  - Search Agent (web search)
-  - URL Classifier (provider vs. directory vs. irrelevant)
-  - Scraper Agent (HTML fetching + section extraction)
-  - Information Extraction, Normalizer, and API Updater agents
-
----
-
-## Development & quality
-
-Common tasks:
-
-- Run all tests:
-
-  ```bash
-  npm run ci
-  ```
-
-- Lint (ESLint):
-
-  ```bash
-  npm run lint
-  ```
-
-- Auto-fix lint issues where possible:
-
-  ```bash
-  npm run lint:fix
-  ```
-
-- Format (Prettier):
-
-  ```bash
-  npm run format
-  ```
-
-- Check formatting only:
-
-  ```bash
-  npm run format:check
-  ```
-
-- Run tests (Vitest):
-
-  ```bash
-  npm test
-  ```
-
-- Watch tests during development:
-
-  ```bash
-  npm run test:watch
-  ```
-
-- Coverage report:
-
-  ```bash
-  npm run coverage
-  ```
-
-### CI
-
-GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push/PR and does the following:
-
-- Install dependencies
-- Lint
-- Prettier check
-- Tests (with coverage uploaded as an artifact) for batch runs.
+**Questions or feedback?** [Open an issue](https://github.com/ShreyBosamia/IToN_Agents/issues) on GitHub.
