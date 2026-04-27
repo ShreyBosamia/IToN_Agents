@@ -20,7 +20,7 @@ Community resource directories — listing food banks, homeless shelters, addict
 
 <img src="docs/adr/images/diagram.png" alt="Pipeline architecture diagram showing staff input flowing through Query Generator, Search Agent, and Web Scraper agents in the cloud, producing JSON output that staff review before publishing to Sanity CMS" width="400">
 
-*Staff submit a city, state, and resource category; AI agents in the cloud generate queries, search the web, scrape sites, and extract structured data; staff review and approve results before they publish to the Sanity CMS database.*
+_Staff submit a city, state, and resource category; AI agents in the cloud generate queries, search the web, scrape sites, and extract structured data; staff review and approve results before they publish to the Sanity CMS database._
 
 1. **Query Generation** — an AI agent crafts 10 high-quality, city-specific search queries per resource category using few-shot prompting.
 2. **Web Search** — queries are sent to the Brave Search API; results are deduplicated across all 10 queries.
@@ -44,7 +44,7 @@ Community resource directories — listing food banks, homeless shelters, addict
 
 <img src="docs/adr/images/pipeline-output.png" alt="Terminal screenshot showing npm run pipeline command for Corvallis OR Food_Bank, with the pipeline saving query, output, and sanity JSON files, then printing the extracted South Corvallis Food Bank record including address, hours, and contact info" width="700">
 
-*Running `npm run pipeline -- "Corvallis" "OR" "Food_Bank" 1 1` — the pipeline generates queries, scrapes the web, and outputs a structured JSON record in seconds.*
+_Running `npm run pipeline -- "Corvallis" "OR" "Food_Bank" 1 1` — the pipeline generates queries, scrapes the web, and outputs a structured JSON record in seconds._
 
 > See more examples in [`examples/Portland_Homeless_shelter_pipeline.json`](examples/Portland_Homeless_shelter_pipeline.json) and [`examples/Salem_FOOD_BANK_queries.txt`](examples/Salem_FOOD_BANK_queries.txt).
 
@@ -76,13 +76,13 @@ For full CLI reference, server setup, and development commands, see **[SETUP.md]
 
 ## Contacts
 
-| Name | GitHub |
-|------|--------|
-| Bailey Bounnam | [@BaileyBounnam](https://github.com/BaileyBounnam) |
-| Adam Nguyen | [@nguyenadamq](https://github.com/nguyenadamq) |
-| Shrey Bosamia | [@ShreyBosamia](https://github.com/ShreyBosamia) |
-| Sungsoo Kim | [@nalchamchi](https://github.com/nalchamchi) |
-| Sierra Sverdrup | [@N8tur3](https://github.com/N8tur3) |
+| Name            | GitHub                                             |
+| --------------- | -------------------------------------------------- |
+| Bailey Bounnam  | [@BaileyBounnam](https://github.com/BaileyBounnam) |
+| Adam Nguyen     | [@nguyenadamq](https://github.com/nguyenadamq)     |
+| Shrey Bosamia   | [@ShreyBosamia](https://github.com/ShreyBosamia)   |
+| Sungsoo Kim     | [@nalchamchi](https://github.com/nalchamchi)       |
+| Sierra Sverdrup | [@N8tur3](https://github.com/N8tur3)               |
 
 **Questions or feedback?** [Open an issue](https://github.com/ShreyBosamia/IToN_Agents/issues) on GitHub.
 
