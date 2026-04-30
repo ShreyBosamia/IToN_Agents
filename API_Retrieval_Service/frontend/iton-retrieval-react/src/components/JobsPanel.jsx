@@ -17,12 +17,7 @@ function JobsPanel({ jobs, loadingJobs, jobsError, selectedJobId, onOpenJob }) {
 
       <div className="jobs-list">
         {jobs.map((job) => (
-          <JobCard
-            key={job.id}
-            job={job}
-            isActive={job.id === selectedJobId}
-            onOpen={onOpenJob}
-          />
+          <JobCard key={job.id} job={job} isActive={job.id === selectedJobId} onOpen={onOpenJob} />
         ))}
       </div>
     </div>

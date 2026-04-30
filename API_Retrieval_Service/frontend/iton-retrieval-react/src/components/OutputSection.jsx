@@ -20,7 +20,10 @@ function OutputSection({ output }) {
         <DetailRow label="Generated" value={formatDate(pipelineOutput?.generated_at)} />
         <DetailRow label="Category" value={pipelineOutput?.category || '-'} />
         <DetailRow label="Output file" value={output?.outputFile || '-'} />
-        <DetailRow label="Sanity file" value={output?.sanityFile || pipelineOutput?.sanity_file || '-'} />
+        <DetailRow
+          label="Sanity file"
+          value={output?.sanityFile || pipelineOutput?.sanity_file || '-'}
+        />
         <DetailRow
           label="URLs searched"
           value={Array.isArray(pipelineOutput?.urls) ? pipelineOutput.urls.length : 0}

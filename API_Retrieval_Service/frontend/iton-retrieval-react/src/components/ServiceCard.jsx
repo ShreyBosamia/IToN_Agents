@@ -17,7 +17,10 @@ function ServiceCard({ service, index }) {
       ? `${service?.location?.latitude ?? '-'}, ${service?.location?.longitude ?? '-'}`
       : '-';
   const typeText = serviceTypes.length
-    ? serviceTypes.map((type) => type?._id).filter(Boolean).join(', ')
+    ? serviceTypes
+        .map((type) => type?._id)
+        .filter(Boolean)
+        .join(', ')
     : '-';
 
   return (
