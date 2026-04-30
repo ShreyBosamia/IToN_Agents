@@ -22,21 +22,24 @@
     "inputs": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["city", "state", "category", "maxQueries", "maxUrls"],
+      "required": ["city", "state", "category"],
       "properties": {
         "city": { "type": "string" },
         "state": { "type": "string" },
         "category": {
           "type": "string",
-          "description": "Always a string due to server coercion; may equal \"undefined\" if omitted in request."
+          "pattern": "^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$"
         },
-        "maxQueries": {
-          "description": "Number or null. Server stores Number(maxQueries) or null.",
-          "anyOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }]
+        "perQuery": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Optional number of search results requested per generated query."
         },
         "maxUrls": {
-          "description": "Number or null. Server stores Number(maxUrls) or null.",
-          "anyOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }]
+          "type": "integer",
+          "minimum": 1,
+          "description": "Optional maximum number of unique URLs to scrape."
         }
       }
     },
@@ -286,8 +289,8 @@
       "inputs": {
         "city": "Austin",
         "state": "TX",
-        "category": "Plumbers",
-        "maxQueries": 5,
+        "category": "FOOD_BANK",
+        "perQuery": 5,
         "maxUrls": 20
       },
       "startedAt": "2026-03-01T21:30:17.890Z",
@@ -296,19 +299,19 @@
         "output": {
           "city": "Austin",
           "state": "TX",
-          "category": "Plumbers",
+          "category": "FOOD_BANK",
           "generated_at": "2026-03-01T21:31:02.100Z",
-          "query_file": "outputs/Austin_Plumbers_queries.json",
-          "queries": ["plumbers Austin TX", "emergency plumber Austin TX"],
-          "search": [{ "query": "plumbers Austin TX", "urls": ["https://example.com"] }],
+          "query_file": "outputs/Austin_FOOD_BANK_queries.json",
+          "queries": ["Austin TX food bank site:.org", "free groceries Austin TX"],
+          "search": [{ "query": "Austin TX food bank site:.org", "urls": ["https://example.com"] }],
           "urls": ["https://example.com"],
           "scraped": [{ "url": "https://example.com", "result": { "data": { "text": "..." } } }],
           "sanity": [],
-          "sanity_file": "outputs/Austin_Plumbers_sanity.json",
+          "sanity_file": "outputs/Austin_FOOD_BANK_sanity.json",
           "extracted": []
         },
-        "outputFile": "outputs/Austin_Plumbers_pipeline.json",
-        "sanityFile": "outputs/Austin_Plumbers_sanity.json"
+        "outputFile": "outputs/Austin_FOOD_BANK_pipeline.json",
+        "sanityFile": "outputs/Austin_FOOD_BANK_sanity.json"
       },
       "error": null
     }

@@ -9,7 +9,7 @@ const EMPTY_FORM = {
   city: '',
   state: '',
   category: '',
-  maxQueries: '',
+  perQuery: '',
   maxUrls: '',
 };
 
@@ -99,9 +99,9 @@ function App() {
       city: form.city.trim(),
       state: form.state.trim(),
       category: form.category.trim(),
-      maxQueries: form.maxQueries === '' ? null : Number(form.maxQueries),
-      maxUrls: form.maxUrls === '' ? null : Number(form.maxUrls),
     };
+    if (form.perQuery !== '') payload.perQuery = Number(form.perQuery);
+    if (form.maxUrls !== '') payload.maxUrls = Number(form.maxUrls);
 
     try {
       const response = await fetch(`${API_BASE}/api/pipelines`, {
@@ -111,7 +111,12 @@ function App() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || 'Request failed');
+      if (!response.ok) {
+        const fieldErrors = Array.isArray(data?.errors)
+          ? data.errors.map((item) => item.message).join(' ')
+          : '';
+        throw new Error(fieldErrors || data?.error || 'Request failed');
+      }
 
       setForm(EMPTY_FORM);
       await fetchJobs();

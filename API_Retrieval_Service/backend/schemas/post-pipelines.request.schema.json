@@ -4,53 +4,53 @@
   "title": "PostPipelinesRequest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["city", "state"],
+  "required": ["city", "state", "category"],
   "properties": {
     "city": {
       "type": "string",
       "minLength": 1,
-      "description": "City name. Required by server validation."
+      "maxLength": 80,
+      "pattern": "^(?!.*\\.\\.)[^<>:\"/\\\\|?*\\u0000-\\u001F]+$",
+      "description": "City name used by the pipeline and output filenames."
     },
     "state": {
       "type": "string",
       "minLength": 1,
-      "description": "State/region code or name. Required by server validation."
+      "maxLength": 80,
+      "pattern": "^(?!.*\\.\\.)[^<>:\"/\\\\|?*\\u0000-\\u001F]+$",
+      "description": "State/region code or name used by the pipeline."
     },
     "category": {
       "type": "string",
-      "description": "Optional category. Server coerces to string; if omitted it becomes the literal string \"undefined\"."
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$",
+      "description": "Pipeline category in UPPER_SNAKE_CASE, such as FOOD_BANK or SHELTER."
     },
-    "maxQueries": {
-      "description": "Optional. If provided, must be a non-negative number. Server converts to Number or null.",
-      "anyOf": [
-        { "type": "number", "minimum": 0 },
-        { "type": "integer", "minimum": 0 },
-        { "type": "string", "pattern": "^\\d+(\\.\\d+)?$" },
-        { "type": "null" }
-      ]
+    "perQuery": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20,
+      "description": "Optional number of Brave Search results to request per generated query."
     },
     "maxUrls": {
-      "description": "Optional. If provided, must be a non-negative number. Server converts to Number or null.",
-      "anyOf": [
-        { "type": "number", "minimum": 0 },
-        { "type": "integer", "minimum": 0 },
-        { "type": "string", "pattern": "^\\d+(\\.\\d+)?$" },
-        { "type": "null" }
-      ]
+      "type": "integer",
+      "minimum": 1,
+      "description": "Optional maximum number of unique URLs for the pipeline to scrape."
     }
   },
   "examples": [
     {
-      "city": "Austin",
-      "state": "TX",
-      "category": "Plumbers",
-      "maxQueries": 5,
-      "maxUrls": 20
+      "city": "Salem",
+      "state": "OR",
+      "category": "FOOD_BANK",
+      "perQuery": 3,
+      "maxUrls": 10
     },
     {
-      "city": "Seattle",
-      "state": "WA",
-      "category": "Dentists"
+      "city": "Portland",
+      "state": "OR",
+      "category": "SHELTER"
     }
   ]
 }

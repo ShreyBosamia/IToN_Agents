@@ -1,11 +1,4 @@
-function PipelineForm({
-  form,
-  submitting,
-  submitError,
-  onInputChange,
-  onSubmit,
-  onRefreshJobs,
-}) {
+function PipelineForm({ form, submitting, submitError, onInputChange, onSubmit, onRefreshJobs }) {
   return (
     <section className="panel form-panel">
       <div className="panel-header">
@@ -39,10 +32,12 @@ function PipelineForm({
         <label>
           <span>Per Query</span>
           <input
-            name="maxQueries"
+            name="perQuery"
             type="number"
-            min="0"
-            value={form.maxQueries}
+            min="1"
+            max="20"
+            step="1"
+            value={form.perQuery}
             onChange={onInputChange}
             placeholder="3"
           />
@@ -52,10 +47,11 @@ function PipelineForm({
           <input
             name="maxUrls"
             type="number"
-            min="0"
+            min="1"
+            step="1"
             value={form.maxUrls}
             onChange={onInputChange}
-            placeholder="3"
+            placeholder="10"
           />
         </label>
 

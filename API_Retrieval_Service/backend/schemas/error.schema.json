@@ -9,11 +9,30 @@
     "error": {
       "type": "string",
       "description": "Human-readable error message."
+    },
+    "errors": {
+      "type": "array",
+      "description": "Optional field-level validation errors.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "message"],
+        "properties": {
+          "field": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
     }
   },
   "examples": [
-    { "error": "city and state are required" },
-    { "error": "maxQueries must be a non-negative number" },
+    {
+      "error": "Invalid pipeline request.",
+      "errors": [{ "field": "category", "message": "category is required." }]
+    },
+    {
+      "error": "Invalid pipeline request.",
+      "errors": [{ "field": "perQuery", "message": "perQuery must be an integer from 1 to 20." }]
+    },
     { "error": "Job not found" }
   ]
 }
