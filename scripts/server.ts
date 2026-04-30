@@ -29,9 +29,34 @@ type PipelineJob = {
 };
 
 const jobs = new Map<string, PipelineJob>();
+const corsOrigins = (process.env.CORS_ORIGIN || process.env.CORS_ALLOWED_ORIGINS || '*')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+function getCorsOrigin(requestOrigin: string | undefined): string | null {
+  if (corsOrigins.includes('*')) return '*';
+  if (requestOrigin && corsOrigins.includes(requestOrigin)) return requestOrigin;
+  return null;
+}
+
+function setCorsHeaders(req: http.IncomingMessage, res: http.ServerResponse): void {
+  const allowedOrigin = getCorsOrigin(req.headers.origin);
+
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    if (allowedOrigin !== '*') {
+      res.setHeader('Vary', 'Origin');
+    }
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Max-Age', '86400');
 }
 
 function sendJson(res: http.ServerResponse, status: number, payload: unknown): void {
@@ -98,6 +123,14 @@ async function startPipeline(job: PipelineJob): Promise<void> {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
   const method = (req.method || 'GET').toUpperCase();
+
+  setCorsHeaders(req, res);
+
+  if (method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
 
   if (url.pathname === '/health') {
     sendJson(res, 200, { ok: true, timestamp: nowIso() });

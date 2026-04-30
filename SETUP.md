@@ -203,6 +203,14 @@ By default it listens on `PORT=3000`. The server exposes a minimal job-based API
 - `POST /jobs/:id/deny` — mark output denied
 - `GET /health` — health check
 
+The server sends CORS headers for browser-based clients. By default `CORS_ORIGIN=*`, which is convenient for local development. For a deployed Sanity Studio, restrict it to the exact Studio origin:
+
+```bash
+CORS_ORIGIN=https://your-studio.sanity.studio npm run server
+```
+
+Use a comma-separated list if you need both local and hosted Studio origins.
+
 Example request:
 
 ```bash
