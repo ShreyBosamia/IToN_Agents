@@ -1,4 +1,11 @@
 import 'dotenv/config';
 import OpenAI from 'openai';
 
-export const openai = new OpenAI();
+let openaiClient: OpenAI | null = null;
+
+export function getOpenAI(): OpenAI {
+  if (!openaiClient) {
+    openaiClient = new OpenAI();
+  }
+  return openaiClient;
+}

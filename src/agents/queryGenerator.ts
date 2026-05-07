@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { openai } from '../ai.ts';
+import { getOpenAI } from '../ai.ts';
 
 /**
  * Query Generator Agent
@@ -183,6 +183,7 @@ function validateAndNormalizeQueries(queries: string[]): string[] {
  * Core function: generate exactly 10 search queries for (city, state, category).
  */
 async function runQueryGenerator(city: string, state: string, category: string): Promise<string[]> {
+  const openai = getOpenAI();
   const messages = buildMessages(city, state, category);
 
   const systemPrompt = buildSystemPrompt(category);
