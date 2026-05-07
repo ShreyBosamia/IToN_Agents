@@ -264,6 +264,148 @@ input {
   margin-top: 14px;
 }
 
+.output-stack {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.output-summary-grid,
+.service-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.service-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.service-card {
+  border: 1px solid #dbe3ea;
+  border-radius: 16px;
+  background: #f9fbfc;
+  overflow: hidden;
+}
+
+.service-toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.service-toggle:hover {
+  background: #f2f7fa;
+}
+
+.service-card h4,
+.service-section h5 {
+  margin: 0;
+}
+
+.service-index {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5f7a6c;
+}
+
+.service-toggle-meta {
+  margin: 6px 0 0;
+  color: #5f6d78;
+}
+
+.service-toggle-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.service-chevron {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8eef3;
+  color: #264154;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.service-card-body {
+  padding: 0 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.method-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.method-agent {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.method-fallback {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.service-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.service-description {
+  margin: 0;
+  color: #41515d;
+  line-height: 1.6;
+}
+
+.hours-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #24323d;
+}
+
+.hours-list li + li {
+  margin-top: 6px;
+}
+
+.service-link {
+  color: #1f5f8b;
+  word-break: break-word;
+}
+
+.muted-inline {
+  margin: 0;
+  color: #64748b;
+}
+
 .detail-row {
   padding: 14px;
   border-radius: 12px;
@@ -329,7 +471,9 @@ input {
 
 @media (max-width: 640px) {
   .pipeline-form,
-  .detail-grid {
+  .detail-grid,
+  .output-summary-grid,
+  .service-detail-grid {
     grid-template-columns: 1fr;
   }
 }

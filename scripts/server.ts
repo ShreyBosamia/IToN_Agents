@@ -4,6 +4,11 @@ import http from 'node:http';
 import { URL } from 'node:url';
 
 import { runPipeline, type PipelineOutput } from '../pipeline/runPipeline.ts';
+import {
+  formatPipelineValidationError,
+  type PipelineInput,
+  validatePipelineRequest,
+} from '../pipeline/validatePipelineRequest.ts';
 
 type JobStatus = 'queued' | 'running' | 'ready_for_review' | 'approved' | 'denied' | 'failed';
 
@@ -12,13 +17,7 @@ type PipelineJob = {
   status: JobStatus;
   createdAt: string;
   updatedAt: string;
-  input: {
-    city: string;
-    state: string;
-    category: string;
-    perQuery?: number;
-    maxUrls?: number;
-  };
+  input: PipelineInput;
   output?: PipelineOutput;
   outputFile?: string;
   sanityFile?: string;
@@ -139,31 +138,20 @@ const server = http.createServer(async (req, res) => {
 
   if (url.pathname === '/jobs' && method === 'POST') {
     try {
-      const body = (await parseBody(req)) as Record<string, unknown>;
-      const city = typeof body.city === 'string' ? body.city.trim() : '';
-      const state = typeof body.state === 'string' ? body.state.trim() : '';
-      const category = typeof body.category === 'string' ? body.category.trim() : '';
+      const body = await parseBody(req);
+      const validation = validatePipelineRequest(body);
 
-      if (!city || !state || !category) {
-        sendJson(res, 400, { error: 'city, state, and category are required.' });
+      if (!validation.ok) {
+        sendJson(res, 400, formatPipelineValidationError(validation.errors));
         return;
       }
-
-      const perQuery =
-        typeof body.perQuery === 'number' && Number.isFinite(body.perQuery)
-          ? body.perQuery
-          : undefined;
-      const maxUrls =
-        typeof body.maxUrls === 'number' && Number.isFinite(body.maxUrls)
-          ? body.maxUrls
-          : undefined;
 
       const job: PipelineJob = {
         id: randomUUID(),
         status: 'queued',
         createdAt: nowIso(),
         updatedAt: nowIso(),
-        input: { city, state, category, perQuery, maxUrls },
+        input: validation.value,
       };
       jobs.set(job.id, job);
       sendJson(res, 202, job);
